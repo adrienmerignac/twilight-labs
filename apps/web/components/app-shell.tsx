@@ -14,6 +14,7 @@ const navigation = [
   { href: "/compare", label: "Compare", icon: "⇄" },
   { href: "/insights", label: "Insights", icon: "✦" },
   { href: "/data", label: "Data", icon: "□" },
+  { href: "/quality", label: "Data quality", icon: "✓" },
   { href: "/diagnostics", label: "Diagnostics", icon: "⌁" },
   { href: "/research", label: "Research", icon: "◌" },
 ];
