@@ -16,7 +16,8 @@
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "@twilight-labs/game-twilight": "workspace:*",
-    "@twilight-labs/domain": "workspace:*"
+    "@twilight-labs/domain": "workspace:*",
+    "@twilight-labs/research": "workspace:*"
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",

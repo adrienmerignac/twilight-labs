@@ -11,6 +11,7 @@ const navigation = [
   { href: "/compare", label: "Compare", icon: "⇄" },
   { href: "/data", label: "Data", icon: "□" },
   { href: "/diagnostics", label: "Diagnostics", icon: "⌁" },
+  { href: "/research", label: "Research", icon: "◌" },
 ];
 
 const isActiveRoute = (pathname: string, href: string) =>

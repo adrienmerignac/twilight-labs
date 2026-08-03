@@ -66,6 +66,9 @@ importers:
       '@twilight-labs/game-twilight':
         specifier: workspace:*
         version: link:../../packages/game-twilight
+      '@twilight-labs/research':
+        specifier: workspace:*
+        version: link:../../packages/research
       next:
         specifier: 16.2.0
         version: 16.2.0(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
@@ -179,6 +182,15 @@ importers:
       vitest:
         specifier: ^3.2.4
         version: 3.2.7(@types/node@22.15.3)(jiti@2.7.0)(lightningcss@1.32.0)
+
+  packages/research:
+    devDependencies:
+      '@repo/typescript-config':
+        specifier: workspace:*
+        version: link:../typescript-config
+      typescript:
+        specifier: ^5.9.2
+        version: 5.9.2
 
   packages/typescript-config: {}
 
