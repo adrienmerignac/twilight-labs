@@ -60,6 +60,12 @@ importers:
       '@repo/ui':
         specifier: workspace:*
         version: link:../../packages/ui
+      '@twilight-labs/domain':
+        specifier: workspace:*
+        version: link:../../packages/domain
+      '@twilight-labs/game-twilight':
+        specifier: workspace:*
+        version: link:../../packages/game-twilight
       next:
         specifier: 16.2.0
         version: 16.2.0(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
@@ -142,6 +148,9 @@ importers:
       '@twilight-labs/domain':
         specifier: workspace:*
         version: link:../domain
+      '@twilight-labs/parser':
+        specifier: workspace:*
+        version: link:../parser
     devDependencies:
       '@repo/typescript-config':
         specifier: workspace:*
@@ -149,6 +158,9 @@ importers:
       typescript:
         specifier: ^5.9.2
         version: 5.9.2
+      vitest:
+        specifier: ^3.2.4
+        version: 3.2.7(@types/node@22.15.3)
 
   packages/parser:
     devDependencies:

@@ -5,6 +5,7 @@ import {
   type CreateTwilightCharacterInput,
 } from "@twilight-labs/game-twilight";
 import { useState } from "react";
+import { saveCharacter } from "../../lib/character-storage";
 
 type CharacterResult = ReturnType<typeof createTwilightCharacter>;
 
@@ -49,6 +50,7 @@ export default function ImportPage() {
     useState<CharacterResult | null>(null);
 
   const [error, setError] = useState<string | null>(null);
+  const [saved, setSaved] = useState(false);
 
   const updateField = (
     field: keyof CreateTwilightCharacterInput,
@@ -62,8 +64,11 @@ export default function ImportPage() {
 
   const handleImport = () => {
     try {
-      setCharacter(createTwilightCharacter(form));
+      const nextCharacter = createTwilightCharacter(form);
+
+      setCharacter(nextCharacter);
       setError(null);
+      setSaved(false);
     } catch (caughtError) {
       setCharacter(null);
 
@@ -153,6 +158,25 @@ export default function ImportPage() {
           >
             Créer le profil
           </button>
+
+          {character && (
+            <button
+              type="button"
+              onClick={() => {
+                saveCharacter(character);
+                setSaved(true);
+              }}
+              className="rounded-xl border border-neutral-300 px-6 py-3 font-semibold transition hover:bg-neutral-100"
+            >
+              Sauvegarder le profil
+            </button>
+          )}
+
+          {saved && (
+            <p className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-emerald-800">
+              Profil sauvegardé localement.
+            </p>
+          )}
 
           {error && (
             <p className="rounded-xl border border-red-200 bg-red-50 p-4 text-red-800">
