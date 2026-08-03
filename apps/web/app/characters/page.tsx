@@ -34,11 +34,11 @@ export default function CharactersPage() {
           </p>
 
           <h1 className="mt-3 text-4xl font-bold tracking-tight">
-            Personnages
+            Characters
           </h1>
 
           <p className="mt-3 text-neutral-600">
-            Profils enregistrés localement dans ton navigateur.
+            Profiles stored locally in your browser.
           </p>
         </div>
 
@@ -46,18 +46,18 @@ export default function CharactersPage() {
           href="/import"
           className="rounded-xl bg-black px-5 py-3 font-semibold text-white"
         >
-          Importer un personnage
+          Import a character
         </Link>
       </header>
 
       {characters.length === 0 ? (
         <section className="mt-10 rounded-2xl border border-dashed border-neutral-300 bg-neutral-50 p-12 text-center">
           <h2 className="text-xl font-semibold">
-            Aucun personnage sauvegardé
+            No saved characters
           </h2>
 
           <p className="mt-2 text-neutral-600">
-            Importe ton premier profil pour commencer.
+            Import your first profile to get started.
           </p>
         </section>
       ) : (
@@ -83,7 +83,7 @@ export default function CharactersPage() {
                   onClick={() => handleDelete(character.id)}
                   className="text-sm font-medium text-red-600 hover:underline"
                 >
-                  Supprimer
+                  Delete
                 </button>
               </div>
 
@@ -100,7 +100,7 @@ export default function CharactersPage() {
 
                 <div>
                   <dt className="text-sm text-neutral-500">
-                    Statistiques
+                    Statistics
                   </dt>
 
                   <dd className="mt-1 font-mono font-semibold">
@@ -110,7 +110,7 @@ export default function CharactersPage() {
               </dl>
 
               <p className="mt-6 text-xs text-neutral-500">
-                Source : {character.metadata.source}
+                Source: {character.metadata.source}
               </p>
             </article>
           ))}

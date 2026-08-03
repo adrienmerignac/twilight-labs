@@ -75,7 +75,7 @@ export default function ImportPage() {
       setError(
         caughtError instanceof Error
           ? caughtError.message
-          : "Une erreur inconnue est survenue.",
+          : "An unknown error occurred.",
       );
     }
   };
@@ -88,12 +88,11 @@ export default function ImportPage() {
         </p>
 
         <h1 className="mt-3 text-4xl font-bold tracking-tight">
-          Importer un personnage
+          Import a character
         </h1>
 
         <p className="mt-3 max-w-2xl text-neutral-600">
-          Transforme les informations affichées dans Ragnarok: Twilight Global
-          en un profil normalisé et exploitable.
+          Turn information displayed in Ragnarok: Twilight Global into a normalized, usable profile.
         </p>
       </header>
 
@@ -101,7 +100,7 @@ export default function ImportPage() {
         <div className="flex flex-col gap-5">
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-1">
             <label className="flex flex-col gap-2">
-              <span className="font-semibold">Nom</span>
+              <span className="font-semibold">Name</span>
 
               <input
                 value={form.name}
@@ -113,7 +112,7 @@ export default function ImportPage() {
             </label>
 
             <label className="flex flex-col gap-2">
-              <span className="font-semibold">Classe</span>
+              <span className="font-semibold">Class</span>
 
               <input
                 value={form.gameClass}
@@ -139,7 +138,7 @@ export default function ImportPage() {
           </div>
 
           <label className="flex flex-col gap-2">
-            <span className="font-semibold">Statistiques brutes</span>
+            <span className="font-semibold">Raw statistics</span>
 
             <textarea
               value={form.rawStats}
@@ -156,7 +155,7 @@ export default function ImportPage() {
             onClick={handleImport}
             className="rounded-xl bg-black px-6 py-3 font-semibold text-white transition hover:bg-neutral-800"
           >
-            Créer le profil
+            Create profile
           </button>
 
           {character && (
@@ -168,13 +167,13 @@ export default function ImportPage() {
               }}
               className="rounded-xl border border-neutral-300 px-6 py-3 font-semibold transition hover:bg-neutral-100"
             >
-              Sauvegarder le profil
+              Save profile
             </button>
           )}
 
           {saved && (
             <p className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-emerald-800">
-              Profil sauvegardé localement.
+              Profile saved locally.
             </p>
           )}
 
@@ -188,7 +187,7 @@ export default function ImportPage() {
         <div>
           {!character && (
             <div className="flex min-h-[640px] items-center justify-center rounded-2xl border border-dashed border-neutral-300 bg-neutral-50 p-8 text-center text-neutral-500">
-              Crée le profil pour afficher les données normalisées.
+              Create the profile to display normalized data.
             </div>
           )}
 
@@ -196,7 +195,7 @@ export default function ImportPage() {
             <div className="flex flex-col gap-6">
               <section className="rounded-2xl border border-neutral-200 bg-white p-6">
                 <p className="text-sm font-semibold uppercase tracking-wider text-violet-600">
-                  Profil normalisé
+                  Normalized profile
                 </p>
 
                 <div className="mt-4 flex flex-wrap items-end justify-between gap-4">
@@ -225,7 +224,7 @@ export default function ImportPage() {
               <section className="overflow-hidden rounded-2xl border border-neutral-200 bg-white">
                 <header className="flex items-center justify-between border-b border-neutral-200 p-5">
                   <h2 className="font-semibold">
-                    Statistiques reconnues
+                    Recognized statistics
                   </h2>
 
                   <span className="rounded-full bg-violet-100 px-3 py-1 text-sm font-medium text-violet-700">
@@ -259,7 +258,7 @@ export default function ImportPage() {
 
               <details className="rounded-2xl border border-neutral-200 bg-neutral-50">
                 <summary className="cursor-pointer p-4 font-semibold">
-                  JSON du personnage
+                  Character JSON
                 </summary>
 
                 <pre className="overflow-x-auto border-t border-neutral-200 p-4 text-xs">

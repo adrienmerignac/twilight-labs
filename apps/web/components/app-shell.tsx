@@ -6,9 +6,9 @@ import type { ReactNode } from "react";
 
 const navigation = [
   { href: "/", label: "Dashboard", icon: "⌂" },
-  { href: "/import", label: "Importer", icon: "↓" },
-  { href: "/characters", label: "Personnages", icon: "◇" },
-  { href: "/compare", label: "Comparer", icon: "⇄" },
+  { href: "/import", label: "Import", icon: "↓" },
+  { href: "/characters", label: "Characters", icon: "◇" },
+  { href: "/compare", label: "Compare", icon: "⇄" },
 ];
 
 const isActiveRoute = (pathname: string, href: string) =>
@@ -61,8 +61,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </p>
 
           <p className="mt-2 text-sm leading-6 text-zinc-400">
-            Les recommandations resteront désactivées tant que les formules ne
-            sont pas validées.
+            Recommendations remain disabled until the underlying formulas are validated.
           </p>
         </div>
       </aside>

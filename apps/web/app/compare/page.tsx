@@ -122,11 +122,11 @@ export default function ComparePage() {
           </p>
 
           <h1 className="mt-3 text-4xl font-bold tracking-tight">
-            Comparer des personnages
+            Compare characters
           </h1>
 
           <p className="mt-3 text-neutral-600">
-            Compare les valeurs absolues et les écarts entre deux profils.
+            Compare absolute values and differences between two profiles.
           </p>
         </div>
 
@@ -135,14 +135,14 @@ export default function ComparePage() {
             href="/characters"
             className="rounded-xl border border-neutral-300 px-5 py-3 font-semibold"
           >
-            Personnages
+            Characters
           </Link>
 
           <Link
             href="/import"
             className="rounded-xl bg-black px-5 py-3 font-semibold text-white"
           >
-            Importer
+            Import
           </Link>
         </div>
       </header>
@@ -150,18 +150,18 @@ export default function ComparePage() {
       {characters.length < 2 ? (
         <section className="mt-10 rounded-2xl border border-dashed border-neutral-300 bg-neutral-50 p-12 text-center">
           <h2 className="text-xl font-semibold">
-            Deux profils sont nécessaires
+            Two profiles are required
           </h2>
 
           <p className="mt-2 text-neutral-600">
-            Importe et sauvegarde au moins deux personnages pour les comparer.
+            Import and save at least two characters before comparing them.
           </p>
         </section>
       ) : (
         <>
           <section className="mt-10 grid gap-5 md:grid-cols-2">
             <label className="flex flex-col gap-2">
-              <span className="font-semibold">Profil de référence</span>
+              <span className="font-semibold">Reference profile</span>
 
               <select
                 value={leftId}
@@ -177,7 +177,7 @@ export default function ComparePage() {
             </label>
 
             <label className="flex flex-col gap-2">
-              <span className="font-semibold">Profil comparé</span>
+              <span className="font-semibold">Compared profile</span>
 
               <select
                 value={rightId}
@@ -196,14 +196,14 @@ export default function ComparePage() {
           {leftCharacter && rightCharacter && (
             <section className="mt-8 overflow-hidden rounded-2xl border border-neutral-200 bg-white">
               <header className="grid grid-cols-[1.4fr_repeat(4,minmax(110px,1fr))] gap-4 border-b border-neutral-200 bg-neutral-50 px-5 py-4 text-sm font-semibold">
-                <span>Statistique</span>
+                <span>Statistic</span>
                 <span className="text-right">
                   {leftCharacter.name}
                 </span>
                 <span className="text-right">
                   {rightCharacter.name}
                 </span>
-                <span className="text-right">Écart</span>
+                <span className="text-right">Difference</span>
                 <span className="text-right">Ratio</span>
               </header>
 
