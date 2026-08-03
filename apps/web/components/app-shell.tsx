@@ -8,6 +8,7 @@ const navigation = [
   { href: "/", label: "Dashboard", icon: "⌂" },
   { href: "/import", label: "Import", icon: "↓" },
   { href: "/characters", label: "Characters", icon: "◇" },
+  { href: "/identity", label: "Game identity", icon: "◎" },
   { href: "/progress", label: "Progress", icon: "↗" },
   { href: "/compare", label: "Compare", icon: "⇄" },
   { href: "/insights", label: "Insights", icon: "✦" },

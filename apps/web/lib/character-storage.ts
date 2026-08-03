@@ -1,4 +1,7 @@
-import type { Character } from "@twilight-labs/domain";
+import type {
+  Character,
+  GameIdentity,
+} from "@twilight-labs/domain";
 
 const STORAGE_KEY = "twilight-labs.characters";
 const HISTORY_STORAGE_KEY = "twilight-labs.character-history";
@@ -9,8 +12,28 @@ export type CharacterSnapshot = {
   savedAt: string;
 };
 
+function isGameIdentity(value: unknown): value is GameIdentity {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const candidate = value as Partial<GameIdentity>;
+
+  return (
+    candidate.gameId === "ragnarok-twilight-global" &&
+    typeof candidate.uid === "string" &&
+    candidate.uid.length > 0 &&
+    (candidate.server === undefined ||
+      typeof candidate.server === "string") &&
+    (candidate.region === undefined ||
+      typeof candidate.region === "string")
+  );
+}
+
 function isCharacter(value: unknown): value is Character {
-  if (!value || typeof value !== "object") return false;
+  if (!value || typeof value !== "object") {
+    return false;
+  }
 
   const candidate = value as Partial<Character>;
 
@@ -21,12 +44,16 @@ function isCharacter(value: unknown): value is Character {
     typeof candidate.cp === "number" &&
     Array.isArray(candidate.stats) &&
     typeof candidate.metadata === "object" &&
-    candidate.metadata !== null
+    candidate.metadata !== null &&
+    (candidate.gameIdentity === undefined ||
+      isGameIdentity(candidate.gameIdentity))
   );
 }
 
 function isCharacterSnapshot(value: unknown): value is CharacterSnapshot {
-  if (!value || typeof value !== "object") return false;
+  if (!value || typeof value !== "object") {
+    return false;
+  }
 
   const candidate = value as Partial<CharacterSnapshot>;
 
@@ -38,17 +65,37 @@ function isCharacterSnapshot(value: unknown): value is CharacterSnapshot {
 }
 
 function readJsonArray(storageKey: string): unknown[] {
-  if (typeof window === "undefined") return [];
+  if (typeof window === "undefined") {
+    return [];
+  }
 
   const rawValue = window.localStorage.getItem(storageKey);
-  if (!rawValue) return [];
+
+  if (!rawValue) {
+    return [];
+  }
 
   try {
     const parsed: unknown = JSON.parse(rawValue);
+
     return Array.isArray(parsed) ? parsed : [];
   } catch {
     return [];
   }
+}
+
+const normalizeIdentityPart = (value: string | undefined) =>
+  value?.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-") || "unknown";
+
+export function createGameIdentityId(
+  identity: GameIdentity,
+): string {
+  return [
+    "rtg",
+    normalizeIdentityPart(identity.region),
+    normalizeIdentityPart(identity.server),
+    normalizeIdentityPart(identity.uid),
+  ].join(":");
 }
 
 export function loadCharacters(): Character[] {
@@ -78,7 +125,9 @@ export function getCharacterHistory(characterId: string): CharacterSnapshot[] {
 }
 
 function saveCharacterSnapshot(character: Character): void {
-  if (typeof window === "undefined") return;
+  if (typeof window === "undefined") {
+    return;
+  }
 
   const history = loadCharacterHistory();
   const previousSnapshot = getCharacterHistory(character.id)[0];
@@ -87,15 +136,19 @@ function saveCharacterSnapshot(character: Character): void {
     ? JSON.stringify({
         cp: previousSnapshot.character.cp,
         stats: previousSnapshot.character.stats,
+        gameIdentity: previousSnapshot.character.gameIdentity,
       })
     : null;
 
   const currentFingerprint = JSON.stringify({
     cp: character.cp,
     stats: character.stats,
+    gameIdentity: character.gameIdentity,
   });
 
-  if (previousFingerprint === currentFingerprint) return;
+  if (previousFingerprint === currentFingerprint) {
+    return;
+  }
 
   const savedAt = new Date().toISOString();
 
@@ -114,9 +167,17 @@ function saveCharacterSnapshot(character: Character): void {
 
 export function saveCharacter(character: Character): Character[] {
   const characters = loadCharacters();
-  const existingIndex = characters.findIndex(
-    (existingCharacter) => existingCharacter.id === character.id,
-  );
+
+  const existingIndex = characters.findIndex((existingCharacter) => {
+    if (
+      character.gameIdentity &&
+      existingCharacter.gameIdentity?.uid === character.gameIdentity.uid
+    ) {
+      return true;
+    }
+
+    return existingCharacter.id === character.id;
+  });
 
   const nextCharacters =
     existingIndex === -1
@@ -130,6 +191,83 @@ export function saveCharacter(character: Character): Character[] {
   return saveCharacters(nextCharacters);
 }
 
+export function linkGameIdentity(
+  characterId: string,
+  identity: GameIdentity,
+): Character[] {
+  const uid = identity.uid.trim();
+
+  if (!uid) {
+    throw new Error("UID is required.");
+  }
+
+  const normalizedIdentity: GameIdentity = {
+    gameId: "ragnarok-twilight-global",
+    uid,
+    server: identity.server?.trim() || undefined,
+    region: identity.region?.trim() || undefined,
+  };
+
+  const characters = loadCharacters();
+
+  const duplicate = characters.find(
+    (character) =>
+      character.id !== characterId &&
+      character.gameIdentity?.uid === normalizedIdentity.uid,
+  );
+
+  if (duplicate) {
+    throw new Error(
+      `UID ${normalizedIdentity.uid} is already linked to ${duplicate.name}.`,
+    );
+  }
+
+  const character = characters.find(
+    (candidate) => candidate.id === characterId,
+  );
+
+  if (!character) {
+    throw new Error("Character not found.");
+  }
+
+  const updatedCharacter: Character = {
+    ...character,
+    gameIdentity: normalizedIdentity,
+  };
+
+  saveCharacterSnapshot(updatedCharacter);
+
+  return saveCharacters(
+    characters.map((candidate) =>
+      candidate.id === characterId ? updatedCharacter : candidate,
+    ),
+  );
+}
+
+export function unlinkGameIdentity(characterId: string): Character[] {
+  const characters = loadCharacters();
+  const character = characters.find(
+    (candidate) => candidate.id === characterId,
+  );
+
+  if (!character) {
+    throw new Error("Character not found.");
+  }
+
+  const { gameIdentity: _gameIdentity, ...characterWithoutIdentity } =
+    character;
+
+  const updatedCharacter: Character = characterWithoutIdentity;
+
+  saveCharacterSnapshot(updatedCharacter);
+
+  return saveCharacters(
+    characters.map((candidate) =>
+      candidate.id === characterId ? updatedCharacter : candidate,
+    ),
+  );
+}
+
 export function deleteCharacter(characterId: string): Character[] {
   return saveCharacters(
     loadCharacters().filter((character) => character.id !== characterId),
@@ -137,7 +275,9 @@ export function deleteCharacter(characterId: string): Character[] {
 }
 
 export function clearCharacters(): void {
-  if (typeof window === "undefined") return;
+  if (typeof window === "undefined") {
+    return;
+  }
 
   window.localStorage.removeItem(STORAGE_KEY);
   window.localStorage.removeItem(HISTORY_STORAGE_KEY);
@@ -146,7 +286,7 @@ export function clearCharacters(): void {
 export function exportCharacters(): string {
   return JSON.stringify(
     {
-      version: 1,
+      version: 2,
       exportedAt: new Date().toISOString(),
       characters: loadCharacters(),
       history: loadCharacterHistory(),
