@@ -101,6 +101,13 @@ export default function CharacterDetailPage() {
             </Link>
 
             <Link
+              href={`/characters/${character.id}/history`}
+              className="rounded-xl border border-zinc-300 bg-white px-5 py-3 text-sm font-semibold transition hover:bg-zinc-100"
+            >
+              View history
+            </Link>
+
+            <Link
               href="/compare"
               className="rounded-xl bg-zinc-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-zinc-800"
             >
