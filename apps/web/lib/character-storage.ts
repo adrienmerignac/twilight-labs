@@ -262,10 +262,9 @@ export function unlinkGameIdentity(characterId: string): Character[] {
     throw new Error("Character not found.");
   }
 
-  const { gameIdentity: _gameIdentity, ...characterWithoutIdentity } =
-    character;
+  const updatedCharacter: Character = { ...character };
 
-  const updatedCharacter: Character = characterWithoutIdentity;
+  delete updatedCharacter.gameIdentity;
 
   saveCharacterSnapshot(updatedCharacter);
 
