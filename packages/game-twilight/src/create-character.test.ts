@@ -29,6 +29,27 @@ describe("createTwilightCharacter", () => {
     expect(character.stats).toHaveLength(3);
   });
 
+  it("attaches a game identity when a UID is provided", () => {
+    const character = createTwilightCharacter({
+      name: "Ysatsu",
+      gameClass: "Assassin",
+      cp: "1.85B",
+      rawStats: "HP 167M",
+      uid: "123456789",
+      region: "Europe",
+      regionConfidence: "inferred",
+      serverUtcOffset: "+01:00",
+    });
+
+    expect(character.gameIdentity).toEqual({
+      gameId: "ragnarok-twilight-global",
+      uid: "123456789",
+      region: "Europe",
+      regionConfidence: "inferred",
+      serverUtcOffset: "+01:00",
+    });
+  });
+
   it("rejects missing identity information", () => {
     expect(() =>
       createTwilightCharacter({

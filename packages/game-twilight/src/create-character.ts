@@ -1,7 +1,10 @@
 import {
+  IdentityConfidence,
   SourceType,
   type Character,
+  type GameIdentity,
 } from "@twilight-labs/domain";
+import { parseNumber } from "@twilight-labs/parser";
 
 import { parseTwilightStats } from "./parse-stats";
 
@@ -11,6 +14,11 @@ export interface CreateTwilightCharacterInput {
   gameClass: string;
   cp: string;
   rawStats: string;
+  uid?: string;
+  server?: string;
+  region?: string;
+  regionConfidence?: IdentityConfidence;
+  serverUtcOffset?: string;
 }
 
 const createCharacterId = (name: string): string =>
@@ -22,31 +30,24 @@ const createCharacterId = (name: string): string =>
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "");
 
-const parseCombatPower = (input: string): number => {
-  const normalized = input
-    .trim()
-    .replace(/\s+/g, "")
-    .replace(",", ".");
+const createGameIdentity = (
+  input: CreateTwilightCharacterInput,
+): GameIdentity | undefined => {
+  const uid = input.uid?.trim();
 
-  const match = normalized.match(
-    /^(\d+(?:\.\d+)?)([KMBT])?$/i,
-  );
-
-  if (!match) {
-    throw new Error(`Invalid combat power: "${input}"`);
+  if (!uid) {
+    return undefined;
   }
 
-  const value = Number(match[1]);
-  const suffix = match[2]?.toUpperCase();
-
-  const multipliers: Readonly<Record<string, number>> = {
-    K: 1_000,
-    M: 1_000_000,
-    B: 1_000_000_000,
-    T: 1_000_000_000_000,
+  return {
+    gameId: "ragnarok-twilight-global",
+    uid,
+    server: input.server?.trim() || undefined,
+    region: input.region?.trim() || undefined,
+    regionConfidence:
+      input.regionConfidence ?? IdentityConfidence.Unknown,
+    serverUtcOffset: input.serverUtcOffset?.trim() || undefined,
   };
-
-  return value * (suffix ? multipliers[suffix] ?? 1 : 1);
 };
 
 export function createTwilightCharacter(
@@ -63,11 +64,18 @@ export function createTwilightCharacter(
     throw new Error("Character class is required.");
   }
 
+  const combatPower = parseNumber(input.cp);
+
+  if (combatPower.unit !== "flat") {
+    throw new Error("Combat power must be a flat numeric value.");
+  }
+
   return {
     id: input.id?.trim() || createCharacterId(name),
+    gameIdentity: createGameIdentity(input),
     name,
     gameClass,
-    cp: parseCombatPower(input.cp),
+    cp: combatPower.value,
     stats: parseTwilightStats(input.rawStats),
     metadata: {
       source: SourceType.Manual,
