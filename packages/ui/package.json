@@ -3,7 +3,13 @@
   "version": "0.0.0",
   "private": true,
   "exports": {
-    "./*": "./src/*.tsx"
+    "./*": "./src/*.tsx",
+    "./button": "./src/button.tsx",
+    "./card": "./src/card.tsx",
+    "./badge": "./src/badge.tsx",
+    "./page-header": "./src/page-header.tsx",
+    "./empty-state": "./src/empty-state.tsx",
+    "./metric": "./src/metric.tsx"
   },
   "scripts": {
     "lint": "eslint . --max-warnings 0",
@@ -22,5 +28,6 @@
   "dependencies": {
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
-  }
+  },
+  "type": "module"
 }
