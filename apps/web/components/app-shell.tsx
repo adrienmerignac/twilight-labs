@@ -158,7 +158,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </button>
         )}
 
-        <div className="min-h-0 flex-1 overflow-y-auto px-3 py-5">
+        <div className="sidebar-scroll min-h-0 flex-1 overflow-y-auto px-3 py-5">
           <nav className="flex flex-col gap-6">
             {navigationGroups.map((group) => (
               <section key={group.label}>

@@ -41,3 +41,13 @@ a {
   background: rgb(196 181 253);
   color: rgb(46 16 101);
 }
+
+.sidebar-scroll {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.sidebar-scroll::-webkit-scrollbar {
+  display: none;
+}
+
