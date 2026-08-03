@@ -1,0 +1,19 @@
+{
+  "name": "@twilight-labs/game-twilight",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "check-types": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.2",
+    "@repo/typescript-config": "workspace:*"
+  },
+  "dependencies": {
+    "@twilight-labs/domain": "workspace:*"
+  }
+}
