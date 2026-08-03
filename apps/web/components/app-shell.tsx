@@ -9,6 +9,7 @@ const navigation = [
   { href: "/import", label: "Import", icon: "↓" },
   { href: "/characters", label: "Characters", icon: "◇" },
   { href: "/compare", label: "Compare", icon: "⇄" },
+  { href: "/data", label: "Data", icon: "□" },
 ];
 
 const isActiveRoute = (pathname: string, href: string) =>
