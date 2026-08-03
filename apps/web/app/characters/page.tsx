@@ -35,7 +35,7 @@ export default function CharactersPage() {
       <PageHeader
         eyebrow="Character database"
         title="Characters"
-        description="Profiles stored locally in your browser."
+        description="Browse locally saved profiles and inspect their normalized statistics."
         actions={
           <Link
             href="/import"
@@ -101,9 +101,18 @@ export default function CharactersPage() {
                   />
                 </div>
 
-                <p className="mt-6 text-xs text-zinc-400">
-                  Source: {character.metadata.source}
-                </p>
+                <div className="mt-6 flex items-center justify-between gap-4">
+                  <p className="text-xs text-zinc-400">
+                    Source: {character.metadata.source}
+                  </p>
+
+                  <Link
+                    href={`/characters/${character.id}`}
+                    className="text-sm font-bold text-violet-700 transition hover:text-violet-900"
+                  >
+                    View profile →
+                  </Link>
+                </div>
               </CardContent>
             </Card>
           ))}
