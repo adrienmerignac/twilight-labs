@@ -26,7 +26,13 @@ function isGameIdentity(value: unknown): value is GameIdentity {
     (candidate.server === undefined ||
       typeof candidate.server === "string") &&
     (candidate.region === undefined ||
-      typeof candidate.region === "string")
+      typeof candidate.region === "string") &&
+    (candidate.regionConfidence === undefined ||
+      ["unknown", "inferred", "verified"].includes(
+        candidate.regionConfidence,
+      )) &&
+    (candidate.serverUtcOffset === undefined ||
+      typeof candidate.serverUtcOffset === "string")
   );
 }
 
@@ -206,6 +212,8 @@ export function linkGameIdentity(
     uid,
     server: identity.server?.trim() || undefined,
     region: identity.region?.trim() || undefined,
+    regionConfidence: identity.regionConfidence ?? "unknown",
+    serverUtcOffset: identity.serverUtcOffset?.trim() || undefined,
   };
 
   const characters = loadCharacters();

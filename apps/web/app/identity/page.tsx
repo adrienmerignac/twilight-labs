@@ -1,8 +1,9 @@
 "use client";
 
-import type {
-  Character,
-  GameIdentity,
+import {
+  IdentityConfidence,
+  type Character,
+  type GameIdentity,
 } from "@twilight-labs/domain";
 import { Badge } from "@repo/ui/badge";
 import { Button } from "@repo/ui/button";
@@ -23,6 +24,8 @@ const EMPTY_IDENTITY: GameIdentity = {
   uid: "",
   server: "",
   region: "",
+  regionConfidence: IdentityConfidence.Unknown,
+  serverUtcOffset: "",
 };
 
 export default function IdentityPage() {
@@ -61,7 +64,12 @@ export default function IdentityPage() {
   ).length;
 
   const updateIdentity = (
-    field: "uid" | "server" | "region",
+    field:
+      | "uid"
+      | "server"
+      | "region"
+      | "regionConfidence"
+      | "serverUtcOffset",
     value: string,
   ) => {
     setIdentity((current) => ({
@@ -250,6 +258,35 @@ export default function IdentityPage() {
 
                 <label className="flex flex-col gap-2">
                   <span className="text-sm font-semibold">
+                    Region confidence
+                  </span>
+                  <select
+                    value={
+                      identity.regionConfidence ??
+                      IdentityConfidence.Unknown
+                    }
+                    onChange={(event) =>
+                      updateIdentity(
+                        "regionConfidence",
+                        event.target.value,
+                      )
+                    }
+                    className="rounded-xl border border-zinc-300 bg-white px-4 py-3"
+                  >
+                    <option value={IdentityConfidence.Unknown}>
+                      Unknown
+                    </option>
+                    <option value={IdentityConfidence.Inferred}>
+                      Inferred
+                    </option>
+                    <option value={IdentityConfidence.Verified}>
+                      Verified
+                    </option>
+                  </select>
+                </label>
+
+                <label className="flex flex-col gap-2">
+                  <span className="text-sm font-semibold">
                     Server
                   </span>
                   <input
@@ -262,6 +299,24 @@ export default function IdentityPage() {
                     }
                     placeholder="Server name or number"
                     className="rounded-xl border border-zinc-300 px-4 py-3 outline-none transition focus:border-violet-500 focus:ring-4 focus:ring-violet-100"
+                  />
+                </label>
+
+                <label className="flex flex-col gap-2">
+                  <span className="text-sm font-semibold">
+                    Server UTC offset
+                  </span>
+                  <input
+                    value={identity.serverUtcOffset ?? ""}
+                    onChange={(event) =>
+                      updateIdentity(
+                        "serverUtcOffset",
+                        event.target.value,
+                      )
+                    }
+                    placeholder="+01:00"
+                    pattern="[+-]\d{2}:\d{2}"
+                    className="rounded-xl border border-zinc-300 px-4 py-3 font-mono"
                   />
                 </label>
               </div>
