@@ -10,6 +10,7 @@ const navigation = [
   { href: "/characters", label: "Characters", icon: "◇" },
   { href: "/compare", label: "Compare", icon: "⇄" },
   { href: "/data", label: "Data", icon: "□" },
+  { href: "/diagnostics", label: "Diagnostics", icon: "⌁" },
 ];
 
 const isActiveRoute = (pathname: string, href: string) =>
