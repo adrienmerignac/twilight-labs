@@ -10,6 +10,7 @@ const navigation = [
   { href: "/characters", label: "Characters", icon: "◇" },
   { href: "/progress", label: "Progress", icon: "↗" },
   { href: "/compare", label: "Compare", icon: "⇄" },
+  { href: "/insights", label: "Insights", icon: "✦" },
   { href: "/data", label: "Data", icon: "□" },
   { href: "/diagnostics", label: "Diagnostics", icon: "⌁" },
   { href: "/research", label: "Research", icon: "◌" },
