@@ -1,7 +1,10 @@
 "use client";
 
 import type { Character } from "@twilight-labs/domain";
-import { EvidenceType } from "@twilight-labs/evidence";
+import {
+  EvidenceProcessingStatus,
+  EvidenceType,
+} from "@twilight-labs/evidence";
 import { Badge } from "@repo/ui/badge";
 import { Button } from "@repo/ui/button";
 import { Card, CardContent, CardHeader } from "@repo/ui/card";
@@ -131,6 +134,10 @@ export default function EvidencePage() {
       metadata: {
         characterName: selectedCharacter.name,
         characterUid: selectedCharacter.gameIdentity?.uid,
+      },
+      processing: {
+        status: EvidenceProcessingStatus.Pending,
+        updatedAt: new Date().toISOString(),
       },
     };
 
