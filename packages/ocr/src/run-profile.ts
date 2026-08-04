@@ -1,4 +1,5 @@
 import { getOcrEngine } from "./engines/registry";
+import { reconstructCharacterAttributes } from "./layout/character-attributes";
 import { getOcrProfile } from "./profiles/registry";
 import type {
   RunOcrProfileRequest,
@@ -22,8 +23,16 @@ export async function runOcrProfile(
     onProgress: request.onProgress,
   });
 
+  const reconstructedText =
+    profile.id === "character-attributes" &&
+    result.lines &&
+    result.lines.length > 0
+      ? reconstructCharacterAttributes(result.lines)
+      : "";
+
   return {
     ...result,
+    text: reconstructedText || result.text,
     profileId: profile.id,
     previewBlob: preprocessed.previewBlob,
     regionCount: 1,
