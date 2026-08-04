@@ -1,3 +1,4 @@
+import { httpOcrEngine } from "./http-engine";
 import { mockEngine } from "./mock-engine";
 import { tesseractEngine } from "./tesseract-engine";
 import type {
@@ -6,6 +7,7 @@ import type {
 } from "../types";
 
 const engines: Record<OcrEngineId, OcrEngine> = {
+  http: httpOcrEngine,
   tesseract: tesseractEngine,
   mock: mockEngine,
 };

@@ -1,4 +1,7 @@
-export type OcrEngineId = "tesseract" | "mock";
+export type OcrEngineId =
+  | "http"
+  | "tesseract"
+  | "mock";
 
 export type OcrPageSegmentationMode =
   | "auto"
@@ -10,17 +13,30 @@ export interface OcrProgress {
   progress: number;
 }
 
+export interface OcrPoint {
+  x: number;
+  y: number;
+}
+
+export interface OcrLine {
+  text: string;
+  confidence: number;
+  polygon: OcrPoint[];
+}
+
 export interface OcrResult {
   engineId: OcrEngineId;
   text: string;
   confidence: number;
   durationMs: number;
+  lines?: OcrLine[];
 }
 
 export interface OcrEngineRequest {
   image: string | Blob;
   language?: string;
   pageSegmentationMode?: OcrPageSegmentationMode;
+  profileId?: string;
   onProgress?: (progress: OcrProgress) => void;
 }
 
@@ -29,16 +45,9 @@ export interface OcrEngine {
   recognize(request: OcrEngineRequest): Promise<OcrResult>;
 }
 
-export interface OcrRegion {
-  id: string;
+export interface OcrPreprocessResult {
   image: string | Blob;
   previewBlob?: Blob;
-}
-
-export interface OcrPreprocessResult {
-  image?: string | Blob;
-  previewBlob?: Blob;
-  regions?: OcrRegion[];
 }
 
 export interface OcrProfile {
