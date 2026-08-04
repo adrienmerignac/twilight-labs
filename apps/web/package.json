@@ -19,7 +19,8 @@
     "@twilight-labs/domain": "workspace:*",
     "@twilight-labs/research": "workspace:*",
     "@twilight-labs/analysis": "workspace:*",
-    "@twilight-labs/evidence": "workspace:*"
+    "@twilight-labs/evidence": "workspace:*",
+    "@twilight-labs/video": "workspace:*"
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",

@@ -23,6 +23,7 @@ const navigationGroups: NavigationGroup[] = [
       { href: "/", label: "Dashboard", icon: "⌂" },
       { href: "/import", label: "Import", icon: "↓" },
       { href: "/inbox", label: "Inbox", icon: "⇩" },
+      { href: "/video", label: "Recording lab", icon: "▶" },
       { href: "/evidence", label: "Evidence", icon: "▧" },
       { href: "/characters", label: "Characters", icon: "◇" },
       { href: "/players", label: "Players", icon: "◉" },
