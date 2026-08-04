@@ -66,6 +66,9 @@ importers:
       '@twilight-labs/domain':
         specifier: workspace:*
         version: link:../../packages/domain
+      '@twilight-labs/evidence':
+        specifier: workspace:*
+        version: link:../../packages/evidence
       '@twilight-labs/game-twilight':
         specifier: workspace:*
         version: link:../../packages/game-twilight

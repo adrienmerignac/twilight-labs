@@ -22,6 +22,7 @@ const navigationGroups: NavigationGroup[] = [
     items: [
       { href: "/", label: "Dashboard", icon: "⌂" },
       { href: "/import", label: "Import", icon: "↓" },
+      { href: "/evidence", label: "Evidence", icon: "▧" },
       { href: "/characters", label: "Characters", icon: "◇" },
       { href: "/players", label: "Players", icon: "◉" },
       { href: "/identity", label: "Game identity", icon: "◎" },

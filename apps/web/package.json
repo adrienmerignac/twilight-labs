@@ -18,7 +18,8 @@
     "@twilight-labs/game-twilight": "workspace:*",
     "@twilight-labs/domain": "workspace:*",
     "@twilight-labs/research": "workspace:*",
-    "@twilight-labs/analysis": "workspace:*"
+    "@twilight-labs/analysis": "workspace:*",
+    "@twilight-labs/evidence": "workspace:*"
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
