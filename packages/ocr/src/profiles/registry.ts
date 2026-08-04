@@ -1,4 +1,4 @@
-import { preprocessCharacterAttributes } from "../preprocess/character-attributes";
+import { preprocessCharacterAttributeColumns } from "../preprocess/character-attributes-columns";
 import { passthroughPreprocess } from "../preprocess/passthrough";
 import type { OcrProfile } from "../types";
 
@@ -17,22 +17,23 @@ const profiles: Record<string, OcrProfile> = {
     engineId: "tesseract",
     language: "eng",
     pageSegmentationMode: "sparse-text",
-    preprocess: preprocessCharacterAttributes,
+    preprocess: preprocessCharacterAttributeColumns,
   },
 };
 
 export function getOcrProfile(
   profileId: string,
 ): OcrProfile {
-const profile = profiles[profileId];
-const defaultProfile = profiles.default;
+  const profile = profiles[profileId];
+  const defaultProfile = profiles.default;
 
-if (profile) {
-  return profile;
+  if (profile) {
+    return profile;
+  }
+
+  if (!defaultProfile) {
+    throw new Error("Default OCR profile is missing.");
+  }
+
+  return defaultProfile;
 }
-
-if (!defaultProfile) {
-  throw new Error("Default OCR profile is missing.");
-}
-
-return defaultProfile;}

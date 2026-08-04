@@ -29,9 +29,16 @@ export interface OcrEngine {
   recognize(request: OcrEngineRequest): Promise<OcrResult>;
 }
 
-export interface OcrPreprocessResult {
+export interface OcrRegion {
+  id: string;
   image: string | Blob;
   previewBlob?: Blob;
+}
+
+export interface OcrPreprocessResult {
+  image?: string | Blob;
+  previewBlob?: Blob;
+  regions?: OcrRegion[];
 }
 
 export interface OcrProfile {
@@ -54,4 +61,5 @@ export interface RunOcrProfileRequest {
 export interface RunOcrProfileResult extends OcrResult {
   profileId: string;
   previewBlob?: Blob;
+  regionCount: number;
 }
