@@ -105,6 +105,15 @@ export function saveEvidence(
   return persistEvidence([normalized, ...current]);
 }
 
+export function saveEvidenceBatch(
+  evidenceItems: StoredEvidence[],
+): StoredEvidence[] {
+  const current = loadEvidence();
+  const normalized = evidenceItems.map(normalizeEvidence);
+
+  return persistEvidence([...normalized, ...current]);
+}
+
 export function updateEvidenceStatus(
   evidenceId: string,
   status: EvidenceStatus,
