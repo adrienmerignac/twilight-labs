@@ -4,18 +4,9 @@ import {
   type EvidenceProcessingStatus as EvidenceStatus,
 } from "@twilight-labs/evidence";
 
-export interface EvidenceTranscription {
-  rawText: string;
-  updatedAt: string;
-  recognizedCount: number;
-  unrecognizedCount: number;
-  recognitionRate: number;
-}
-
 export interface StoredEvidence extends Evidence {
   previewDataUrl: string;
   title?: string;
-  transcription?: EvidenceTranscription;
 }
 
 const STORAGE_KEY = "twilight-labs.evidence";
@@ -88,14 +79,6 @@ export function loadEvidenceForCharacter(
     );
 }
 
-export function getEvidence(
-  evidenceId: string,
-): StoredEvidence | undefined {
-  return loadEvidence().find(
-    (evidence) => evidence.id === evidenceId,
-  );
-}
-
 export function saveEvidence(
   evidence: StoredEvidence,
 ): StoredEvidence[] {
@@ -118,26 +101,6 @@ export function updateEvidenceStatus(
             status,
             updatedAt: new Date().toISOString(),
             error: status === EvidenceProcessingStatus.Failed ? error : undefined,
-          },
-        }
-      : evidence,
-  );
-
-  return persistEvidence(next);
-}
-
-export function updateEvidenceTranscription(
-  evidenceId: string,
-  transcription: EvidenceTranscription,
-): StoredEvidence[] {
-  const next = loadEvidence().map((evidence) =>
-    evidence.id === evidenceId
-      ? {
-          ...evidence,
-          transcription,
-          processing: {
-            status: EvidenceProcessingStatus.Processed,
-            updatedAt: transcription.updatedAt,
           },
         }
       : evidence,
