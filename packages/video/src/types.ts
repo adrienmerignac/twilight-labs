@@ -19,3 +19,7 @@ export interface VideoMetadata {
   width: number;
   height: number;
 }
+
+export interface SelectedKeyFrame extends ExtractedVideoFrame {
+  differenceFromPrevious: number | null;
+}
