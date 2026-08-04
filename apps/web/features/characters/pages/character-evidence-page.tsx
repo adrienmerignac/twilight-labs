@@ -41,8 +41,10 @@ export default function CharacterEvidencePage() {
     setCharacter(
       loadCharacters().find((candidate) => candidate.id === params.id) ?? null,
     );
-    setEvidence(loadEvidenceForCharacter(params.id));
-    setLoaded(true);
+    void loadEvidenceForCharacter(params.id).then((items) => {
+      setEvidence(items);
+      setLoaded(true);
+    });
   }, [params.id]);
 
   const statusCounts = useMemo(
@@ -60,9 +62,12 @@ export default function CharacterEvidencePage() {
     [evidence],
   );
 
-  const setStatus = (evidenceId: string, status: EvidenceStatus) => {
-    updateEvidenceStatus(evidenceId, status);
-    setEvidence(loadEvidenceForCharacter(params.id));
+  const setStatus = async (
+    evidenceId: string,
+    status: EvidenceStatus,
+  ) => {
+    await updateEvidenceStatus(evidenceId, status);
+    setEvidence(await loadEvidenceForCharacter(params.id));
   };
 
   if (!loaded) {

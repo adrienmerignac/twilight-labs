@@ -60,7 +60,7 @@ export default function EvidencePage() {
 
     setCharacters(storedCharacters);
     setCharacterId(storedCharacters[0]?.id ?? "");
-    setEvidence(loadEvidence());
+    void loadEvidence().then(setEvidence);
   }, []);
 
   const selectedCharacter = useMemo(
@@ -157,7 +157,7 @@ export default function EvidencePage() {
     void handleFile(event.dataTransfer.files[0]);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!pendingImage || !selectedCharacter) {
       return;
     }
@@ -184,15 +184,15 @@ export default function EvidencePage() {
       },
     };
 
-    setEvidence(saveEvidence(nextEvidence));
+    setEvidence(await saveEvidence(nextEvidence));
     setPendingImage(null);
     setTitle("");
     setMessage("Screenshot evidence saved.");
     setError(null);
   };
 
-  const handleDelete = (evidenceId: string) => {
-    setEvidence(deleteEvidence(evidenceId));
+  const handleDelete = async (evidenceId: string) => {
+    setEvidence(await deleteEvidence(evidenceId));
   };
 
   return (

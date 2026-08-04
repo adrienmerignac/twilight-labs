@@ -32,11 +32,11 @@ export default function EvidenceDetailPage() {
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
-    const storedEvidence = getEvidence(params.id) ?? null;
-
-    setEvidence(storedEvidence);
-    setRawText(storedEvidence?.transcription?.rawText ?? "");
-    setLoaded(true);
+    void getEvidence(params.id).then((storedEvidence) => {
+      setEvidence(storedEvidence ?? null);
+      setRawText(storedEvidence?.transcription?.rawText ?? "");
+      setLoaded(true);
+    });
   }, [params.id]);
 
   const analysis = useMemo(
@@ -44,14 +44,14 @@ export default function EvidenceDetailPage() {
     [rawText],
   );
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!evidence || analysis.totalLines === 0) {
       return;
     }
 
     const updatedAt = new Date().toISOString();
 
-    updateEvidenceTranscription(evidence.id, {
+    await updateEvidenceTranscription(evidence.id, {
       rawText,
       updatedAt,
       recognizedCount: analysis.recognized.length,
@@ -59,7 +59,7 @@ export default function EvidenceDetailPage() {
       recognitionRate: analysis.recognitionRate,
     });
 
-    setEvidence(getEvidence(evidence.id) ?? evidence);
+    setEvidence((await getEvidence(evidence.id)) ?? evidence);
     setSaved(true);
   };
 

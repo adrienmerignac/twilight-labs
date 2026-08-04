@@ -82,7 +82,9 @@ export default function InboxPage() {
 
     setCharacters(storedCharacters);
     setCharacterId(storedCharacters[0]?.id ?? "");
-    setSavedEvidenceCount(loadEvidence().length);
+    void loadEvidence().then((items) => {
+      setSavedEvidenceCount(items.length);
+    });
   }, []);
 
   const selectedCharacter = useMemo(
@@ -186,7 +188,7 @@ export default function InboxPage() {
     );
   };
 
-  const importAll = () => {
+  const importAll = async () => {
     if (!selectedCharacter || queue.length === 0) {
       return;
     }
@@ -219,7 +221,7 @@ export default function InboxPage() {
       }),
     );
 
-    const nextEvidence = saveEvidenceBatch(evidenceItems);
+    const nextEvidence = await saveEvidenceBatch(evidenceItems);
 
     setSavedEvidenceCount(nextEvidence.length);
     setQueue([]);
