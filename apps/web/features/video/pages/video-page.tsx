@@ -16,6 +16,7 @@ import {
 } from "../../evidence/storage/evidence-storage";
 import { FrameGallery } from "../components/frame-gallery";
 import { KeyFrameReview } from "../components/keyframe-review";
+import type { ScreenType } from "../components/screen-types";
 import {
   blobToDataUrl,
   formatTimestamp,
@@ -34,6 +35,9 @@ export default function VideoPage() {
   const [characterId, setCharacterId] = useState("");
   const [importing, setImporting] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [classifications, setClassifications] = useState<
+    Record<string, ScreenType>
+  >({});
 
   useEffect(() => {
     const storedCharacters = loadCharacters();
@@ -96,6 +100,8 @@ export default function VideoPage() {
               videoTimestamp: frame.timestamp,
               visualDifference:
                 frame.differenceFromPrevious,
+              screenType:
+                classifications[frame.id] ?? "unknown",
             },
             processing: {
               status: EvidenceProcessingStatus.Pending,
@@ -201,11 +207,18 @@ export default function VideoPage() {
           frames={pipeline.keyFrames}
           originalFrameCount={pipeline.frames.length}
           selectedFrameIds={pipeline.selectedFrameIds}
+          classifications={classifications}
           characters={characters}
           characterId={characterId}
           importing={importing}
           message={message}
           onCharacterChange={setCharacterId}
+          onClassificationChange={(frameId, screenType) =>
+            setClassifications((current) => ({
+              ...current,
+              [frameId]: screenType,
+            }))
+          }
           onToggleFrame={pipeline.toggleFrame}
           onSelectAll={pipeline.selectAll}
           onClearSelection={pipeline.clearSelection}

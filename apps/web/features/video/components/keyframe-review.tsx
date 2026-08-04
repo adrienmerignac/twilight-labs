@@ -6,17 +6,27 @@ import { EmptyState } from "@repo/ui/empty-state";
 import Image from "next/image";
 
 import type { DisplayKeyFrame } from "../hooks/use-video-pipeline";
+import {
+  SCREEN_TYPES,
+  SCREEN_TYPE_LABELS,
+  type ScreenType,
+} from "./screen-types";
 import { formatTimestamp } from "./video-format";
 
 type KeyFrameReviewProps = {
   frames: DisplayKeyFrame[];
   originalFrameCount: number;
   selectedFrameIds: Set<string>;
+  classifications: Record<string, ScreenType>;
   characters: Character[];
   characterId: string;
   importing: boolean;
   message: string | null;
   onCharacterChange: (characterId: string) => void;
+  onClassificationChange: (
+    frameId: string,
+    screenType: ScreenType,
+  ) => void;
   onToggleFrame: (frameId: string) => void;
   onSelectAll: () => void;
   onClearSelection: () => void;
@@ -27,33 +37,47 @@ export function KeyFrameReview({
   frames,
   originalFrameCount,
   selectedFrameIds,
+  classifications,
   characters,
   characterId,
   importing,
   message,
   onCharacterChange,
+  onClassificationChange,
   onToggleFrame,
   onSelectAll,
   onClearSelection,
   onSend,
 }: KeyFrameReviewProps) {
+  const classifiedCount = frames.filter(
+    (frame) =>
+      (classifications[frame.id] ?? "unknown") !== "unknown",
+  ).length;
+
   return (
     <Card className="overflow-hidden">
       <CardHeader className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.18em] text-emerald-600">
-            Key frame detection
+            Screen classification
           </p>
           <h2 className="mt-2 text-xl font-black">
-            Review selected screens
+            Review detected screens
           </h2>
         </div>
 
         {frames.length > 0 && (
-          <Badge variant="success">
-            {frames.length} kept ·{" "}
-            {originalFrameCount - frames.length} removed
-          </Badge>
+          <div className="flex flex-wrap gap-2">
+            <Badge variant="success">
+              {frames.length} kept
+            </Badge>
+            <Badge variant="research">
+              {classifiedCount}/{frames.length} classified
+            </Badge>
+            <Badge variant="neutral">
+              {originalFrameCount - frames.length} removed
+            </Badge>
+          </div>
         )}
       </CardHeader>
 
@@ -130,6 +154,8 @@ export function KeyFrameReview({
           <div className="grid gap-5 p-5 md:grid-cols-2 xl:grid-cols-4">
             {frames.map((frame) => {
               const selected = selectedFrameIds.has(frame.id);
+              const screenType =
+                classifications[frame.id] ?? "unknown";
 
               return (
                 <article
@@ -151,7 +177,7 @@ export function KeyFrameReview({
                     />
                   </div>
 
-                  <div className="p-4">
+                  <div className="space-y-4 p-4">
                     <div className="flex items-start justify-between gap-4">
                       <div>
                         <p className="font-mono font-bold">
@@ -164,14 +190,44 @@ export function KeyFrameReview({
                         </p>
                       </div>
 
-                      <Badge variant="success">Kept</Badge>
+                      <Badge
+                        variant={
+                          screenType === "unknown"
+                            ? "warning"
+                            : "success"
+                        }
+                      >
+                        {SCREEN_TYPE_LABELS[screenType]}
+                      </Badge>
                     </div>
+
+                    <label className="flex flex-col gap-2">
+                      <span className="text-xs font-bold uppercase tracking-[0.12em] text-zinc-500">
+                        Screen type
+                      </span>
+                      <select
+                        value={screenType}
+                        onChange={(event) =>
+                          onClassificationChange(
+                            frame.id,
+                            event.target.value as ScreenType,
+                          )
+                        }
+                        className="rounded-xl border border-zinc-300 bg-white px-3 py-2.5 text-sm"
+                      >
+                        {SCREEN_TYPES.map((type) => (
+                          <option key={type} value={type}>
+                            {SCREEN_TYPE_LABELS[type]}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
 
                     <button
                       type="button"
                       onClick={() => onToggleFrame(frame.id)}
                       className={[
-                        "mt-4 w-full rounded-xl px-4 py-2.5 text-sm font-bold transition",
+                        "w-full rounded-xl px-4 py-2.5 text-sm font-bold transition",
                         selected
                           ? "bg-violet-600 text-white hover:bg-violet-700"
                           : "bg-zinc-100 text-zinc-700 hover:bg-zinc-200",
