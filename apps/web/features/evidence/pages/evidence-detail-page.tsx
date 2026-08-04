@@ -1,7 +1,7 @@
 "use client";
 
 import { analyzeTwilightStats } from "@twilight-labs/game-twilight";
-import { recognizeImage } from "@twilight-labs/ocr";
+import { runOcrProfile } from "@twilight-labs/ocr";
 import { Badge } from "@repo/ui/badge";
 import { Button } from "@repo/ui/button";
 import { Card, CardContent, CardHeader } from "@repo/ui/card";
@@ -49,6 +49,13 @@ export default function EvidenceDetailPage() {
   const [ocrError, setOcrError] = useState<string | null>(
     null,
   );
+  const [ocrEngine, setOcrEngine] = useState<string | null>(
+    null,
+  );
+  const [ocrDurationMs, setOcrDurationMs] =
+    useState<number | null>(null);
+  const [processedPreviewUrl, setProcessedPreviewUrl] =
+    useState<string | null>(null);
 
   useEffect(() => {
     void getEvidence(params.id).then((storedEvidence) => {
@@ -59,6 +66,15 @@ export default function EvidenceDetailPage() {
       setLoaded(true);
     });
   }, [params.id]);
+
+  useEffect(
+    () => () => {
+      if (processedPreviewUrl) {
+        URL.revokeObjectURL(processedPreviewUrl);
+      }
+    },
+    [processedPreviewUrl],
+  );
 
   const analysis = useMemo(
     () => analyzeTwilightStats(rawText),
@@ -78,21 +94,37 @@ export default function EvidenceDetailPage() {
     setSaved(false);
 
     try {
-      const result = await recognizeImage(
-        evidence.previewDataUrl,
-        {
-          language: "eng",
-          onProgress: ({ status, progress }) => {
-            setOcrStatus(formatOcrStatus(status));
-            setOcrProgress(
-              Math.max(0, Math.min(100, progress * 100)),
-            );
-          },
-        },
-      );
+      const screenType =
+        typeof evidence.metadata.screenType === "string"
+          ? evidence.metadata.screenType
+          : "default";
 
+      setOcrStatus("Preparing OCR profile");
+
+      const result = await runOcrProfile({
+        image: evidence.previewDataUrl,
+        profileId: screenType,
+        onProgress: ({ status, progress }) => {
+          setOcrStatus(formatOcrStatus(status));
+          setOcrProgress(
+            Math.max(0, Math.min(100, progress * 100)),
+          );
+        },
+      });
+
+      setProcessedPreviewUrl((current) => {
+        if (current) {
+          URL.revokeObjectURL(current);
+        }
+
+        return result.previewBlob
+          ? URL.createObjectURL(result.previewBlob)
+          : null;
+      });
       setRawText(result.text);
       setOcrConfidence(result.confidence);
+      setOcrEngine(result.engineId);
+      setOcrDurationMs(result.durationMs);
       setOcrStatus("OCR completed");
       setOcrProgress(100);
     } catch (caughtError) {
@@ -175,13 +207,22 @@ export default function EvidenceDetailPage() {
         }
       />
 
-      <section className="mt-10 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+      <section className="mt-10 grid gap-4 sm:grid-cols-2 xl:grid-cols-6">
         <Metric
           label="OCR confidence"
           value={
             ocrConfidence === null
               ? "—"
               : `${ocrConfidence.toFixed(1)}%`
+          }
+        />
+        <Metric
+          label="OCR engine"
+          value={ocrEngine ?? "—"}
+          detail={
+            ocrDurationMs === null
+              ? undefined
+              : `${(ocrDurationMs / 1000).toFixed(1)}s`
           }
         />
         <Metric
@@ -219,6 +260,23 @@ export default function EvidenceDetailPage() {
             </div>
 
             <CardContent>
+              {processedPreviewUrl && (
+                <div className="mb-5">
+                  <p className="mb-2 text-xs font-bold uppercase tracking-[0.14em] text-zinc-500">
+                    OCR profile input
+                  </p>
+                  <div className="relative h-72 overflow-hidden rounded-2xl bg-zinc-950">
+                    <Image
+                      src={processedPreviewUrl}
+                      alt="Preprocessed OCR input"
+                      fill
+                      unoptimized
+                      className="object-contain"
+                    />
+                  </div>
+                </div>
+              )}
+
               <p className="font-semibold">
                 {evidence.source.filename}
               </p>
