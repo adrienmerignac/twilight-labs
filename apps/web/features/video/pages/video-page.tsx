@@ -4,6 +4,7 @@ import type { Character } from "@twilight-labs/domain";
 import {
   EvidenceProcessingStatus,
   EvidenceType,
+  type ScreenType,
 } from "@twilight-labs/evidence";
 import { Metric } from "@repo/ui/metric";
 import { PageHeader } from "@repo/ui/page-header";
@@ -16,7 +17,6 @@ import {
 } from "../../evidence/storage/evidence-storage";
 import { FrameGallery } from "../components/frame-gallery";
 import { KeyFrameReview } from "../components/keyframe-review";
-import type { ScreenType } from "../components/screen-types";
 import {
   blobToDataUrl,
   formatTimestamp,

@@ -4,6 +4,7 @@ import type { Character } from "@twilight-labs/domain";
 import {
   EvidenceProcessingStatus,
   EvidenceType,
+  getScreenDefinition,
 } from "@twilight-labs/evidence";
 import { Badge } from "@repo/ui/badge";
 import { Button } from "@repo/ui/button";
@@ -343,6 +344,9 @@ export default function EvidencePage() {
                 const character = characters.find(
                   (candidate) => candidate.id === item.characterId,
                 );
+                const screenDefinition = getScreenDefinition(
+                  item.metadata.screenType,
+                );
 
                 return (
                   <article
@@ -370,7 +374,23 @@ export default function EvidencePage() {
                           </p>
                         </div>
 
-                        <Badge variant="research">Screenshot</Badge>
+                        <div className="flex flex-col items-end gap-2">
+                          <Badge variant="research">
+                            {item.type === EvidenceType.VideoFrame
+                              ? "Video frame"
+                              : "Screenshot"}
+                          </Badge>
+
+                          <Badge
+                            variant={
+                              screenDefinition.id === "unknown"
+                                ? "warning"
+                                : "success"
+                            }
+                          >
+                            {screenDefinition.label}
+                          </Badge>
+                        </div>
                       </div>
 
                       <p className="mt-4 text-xs text-zinc-400">

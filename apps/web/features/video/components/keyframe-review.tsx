@@ -1,4 +1,9 @@
 import type { Character } from "@twilight-labs/domain";
+import {
+  SCREEN_TYPES,
+  SCREEN_TYPE_LABELS,
+  type ScreenType,
+} from "@twilight-labs/evidence";
 import { Badge } from "@repo/ui/badge";
 import { Button } from "@repo/ui/button";
 import { Card, CardContent, CardHeader } from "@repo/ui/card";
@@ -6,11 +11,6 @@ import { EmptyState } from "@repo/ui/empty-state";
 import Image from "next/image";
 
 import type { DisplayKeyFrame } from "../hooks/use-video-pipeline";
-import {
-  SCREEN_TYPES,
-  SCREEN_TYPE_LABELS,
-  type ScreenType,
-} from "./screen-types";
 import { formatTimestamp } from "./video-format";
 
 type KeyFrameReviewProps = {
