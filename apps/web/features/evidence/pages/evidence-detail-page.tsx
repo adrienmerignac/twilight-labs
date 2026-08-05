@@ -11,7 +11,9 @@ import {
   OcrRequestCanceledError,
   OcrRequestManager,
   OcrRequestTimeoutError,
+  reconstructCardGrid,
   runOcrProfile,
+  type OcrLine,
 } from "@twilight-labs/ocr";
 import { getScreenDefinition } from "@twilight-labs/evidence";
 import { Badge } from "@repo/ui/badge";
@@ -74,6 +76,9 @@ export default function EvidenceDetailPage() {
   const [evidence, setEvidence] =
     useState<StoredEvidence | null>(null);
   const [rawText, setRawText] = useState("");
+  const [ocrLines, setOcrLines] = useState<readonly OcrLine[]>(
+    [],
+  );
   const [loaded, setLoaded] = useState(false);
   const [saved, setSaved] = useState(false);
   const [ocrRunning, setOcrRunning] = useState(false);
@@ -175,13 +180,21 @@ export default function EvidenceDetailPage() {
         : "",
     [characterSnapshot],
   );
+  const cardReconstruction = useMemo(
+    () => reconstructCardGrid(ocrLines),
+    [ocrLines],
+  );
   const cards = useMemo(
-    () => parseTwilightCards(rawText, normalizedOcrConfidence),
-    [normalizedOcrConfidence, rawText],
+    () => parseTwilightCards(cardReconstruction.cells),
+    [cardReconstruction.cells],
   );
   const cardsJson = useMemo(
     () => JSON.stringify(cards, null, 2),
     [cards],
+  );
+  const cardsDiagnosticsJson = useMemo(
+    () => JSON.stringify(cardReconstruction, null, 2),
+    [cardReconstruction],
   );
 
   const handleRunOcr = async () => {
@@ -229,6 +242,7 @@ export default function EvidenceDetailPage() {
           : null;
       });
       setRawText(result.text);
+      setOcrLines(result.lines ?? []);
       setOcrConfidence(result.confidence);
       setOcrEngine(result.engineId);
       setOcrDurationMs(result.durationMs);
@@ -807,7 +821,7 @@ CRIT RATE 49.47%`}
                   {cards.length === 0 ? (
                     <EmptyState
                       title="No cards recognized"
-                      description="Run OCR or enter card slots in the format “Slot 1: Card Name Lv. 5 Epic”."
+                      description="Run OCR on a Cards screen to reconstruct card slots from the detected text layout."
                     />
                   ) : (
                     <div className="divide-y divide-zinc-200 rounded-2xl border border-zinc-200">
@@ -851,6 +865,28 @@ CRIT RATE 49.47%`}
 
                   <pre className="max-h-[620px] overflow-auto rounded-2xl bg-zinc-950 p-5 font-mono text-sm leading-6 text-zinc-100">
                     {cardsJson}
+                  </pre>
+                </CardContent>
+              </Card>
+
+              <Card className="mt-6 overflow-hidden">
+                <CardHeader>
+                  <p className="text-xs font-bold uppercase tracking-[0.18em] text-amber-600">
+                    Cards diagnostics
+                  </p>
+                  <h2 className="mt-2 text-xl font-black">
+                    Grid cell and OCR box assignments
+                  </h2>
+                </CardHeader>
+
+                <CardContent>
+                  <p className="mb-4 text-sm leading-6 text-zinc-500">
+                    Each OCR box includes its reconstructed slot. Each
+                    cell includes its inferred bounds and contributing
+                    OCR lines.
+                  </p>
+                  <pre className="max-h-[620px] overflow-auto rounded-2xl bg-zinc-950 p-5 font-mono text-sm leading-6 text-zinc-100">
+                    {cardsDiagnosticsJson}
                   </pre>
                 </CardContent>
               </Card>
