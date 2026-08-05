@@ -5,6 +5,9 @@ import {
   EvidenceProcessingStatus,
   EvidenceType,
   getScreenDefinition,
+  isScreenType,
+  SCREEN_TYPES,
+  type ScreenType,
 } from "@twilight-labs/evidence";
 import { Badge } from "@repo/ui/badge";
 import { Button } from "@repo/ui/button";
@@ -50,6 +53,8 @@ export default function EvidencePage() {
   const [characters, setCharacters] = useState<Character[]>([]);
   const [evidence, setEvidence] = useState<StoredEvidence[]>([]);
   const [characterId, setCharacterId] = useState("");
+  const [screenType, setScreenType] =
+    useState<ScreenType>("unknown");
   const [title, setTitle] = useState("");
   const [pendingImage, setPendingImage] = useState<PendingImage | null>(null);
   const [dragging, setDragging] = useState(false);
@@ -178,6 +183,7 @@ export default function EvidencePage() {
       metadata: {
         characterName: selectedCharacter.name,
         characterUid: selectedCharacter.gameIdentity?.uid,
+        screenType,
       },
       processing: {
         status: EvidenceProcessingStatus.Pending,
@@ -257,6 +263,27 @@ export default function EvidencePage() {
                     placeholder="Stats screen, equipment page…"
                     className="rounded-xl border border-zinc-300 px-4 py-3"
                   />
+                </label>
+
+                <label className="flex flex-col gap-2">
+                  <span className="text-sm font-semibold">
+                    Screen type
+                  </span>
+                  <select
+                    value={screenType}
+                    onChange={(event) => {
+                      if (isScreenType(event.target.value)) {
+                        setScreenType(event.target.value);
+                      }
+                    }}
+                    className="rounded-xl border border-zinc-300 bg-white px-4 py-3"
+                  >
+                    {SCREEN_TYPES.map((type) => (
+                      <option key={type} value={type}>
+                        {getScreenDefinition(type).label}
+                      </option>
+                    ))}
+                  </select>
                 </label>
 
                 <label

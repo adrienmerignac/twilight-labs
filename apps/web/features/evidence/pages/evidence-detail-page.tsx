@@ -3,12 +3,14 @@
 import {
   analyzeTwilightStats,
   createCharacterSnapshot,
+  parseTwilightCards,
 } from "@twilight-labs/game-twilight";
 import {
   extractOcrCharacterMetadata,
   normalizeOcrConfidence,
   runOcrProfile,
 } from "@twilight-labs/ocr";
+import { getScreenDefinition } from "@twilight-labs/evidence";
 import { Badge } from "@repo/ui/badge";
 import { Button } from "@repo/ui/button";
 import { Card, CardContent, CardHeader } from "@repo/ui/card";
@@ -67,7 +69,7 @@ export default function EvidenceDetailPage() {
   const [processedPreviewUrl, setProcessedPreviewUrl] =
     useState<string | null>(null);
   const [activeOutputTab, setActiveOutputTab] = useState<
-    "parser" | "snapshot"
+    "parser" | "snapshot" | "cards"
   >("parser");
   const [copyStatus, setCopyStatus] = useState<string | null>(null);
 
@@ -76,6 +78,13 @@ export default function EvidenceDetailPage() {
       setEvidence(storedEvidence ?? null);
       setRawText(
         storedEvidence?.transcription?.rawText ?? "",
+      );
+      setActiveOutputTab(
+        getScreenDefinition(
+          storedEvidence?.metadata.screenType,
+        ).id === "cards"
+          ? "cards"
+          : "parser",
       );
       setLoaded(true);
     });
@@ -131,6 +140,14 @@ export default function EvidenceDetailPage() {
         ? JSON.stringify(characterSnapshot, null, 2)
         : "",
     [characterSnapshot],
+  );
+  const cards = useMemo(
+    () => parseTwilightCards(rawText, normalizedOcrConfidence),
+    [normalizedOcrConfidence, rawText],
+  );
+  const cardsJson = useMemo(
+    () => JSON.stringify(cards, null, 2),
+    [cards],
   );
 
   const handleRunOcr = async () => {
@@ -213,8 +230,11 @@ export default function EvidenceDetailPage() {
     setSaved(true);
   };
 
-  const handleCopyCharacterSnapshot = () => {
-    if (!characterSnapshotJson) {
+  const handleCopyOutput = (
+    output: string,
+    outputName: string,
+  ) => {
+    if (!output) {
       return;
     }
 
@@ -225,14 +245,20 @@ export default function EvidenceDetailPage() {
       return;
     }
 
-    void navigator.clipboard.writeText(characterSnapshotJson).then(
-      () => setCopyStatus("Character Snapshot copied."),
+    void navigator.clipboard.writeText(output).then(
+      () => setCopyStatus(`${outputName} copied.`),
       () =>
         setCopyStatus(
-          "Unable to copy Character Snapshot to the clipboard.",
+          `Unable to copy ${outputName} to the clipboard.`,
         ),
     );
   };
+
+  const handleCopyCharacterSnapshot = () =>
+    handleCopyOutput(characterSnapshotJson, "Character Snapshot");
+
+  const handleCopyCards = () =>
+    handleCopyOutput(cardsJson, "Cards JSON");
 
   if (!loaded) {
     return (
@@ -493,6 +519,21 @@ CRIT RATE 49.47%`}
             >
               Character Snapshot
             </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeOutputTab === "cards"}
+              aria-controls="cards-output-panel"
+              onClick={() => setActiveOutputTab("cards")}
+              className={[
+                "border-b-2 px-4 py-3 text-sm font-bold transition",
+                activeOutputTab === "cards"
+                  ? "border-violet-600 text-violet-700"
+                  : "border-transparent text-zinc-500 hover:text-zinc-950",
+              ].join(" ")}
+            >
+              Cards
+            </button>
           </div>
 
           {activeOutputTab === "parser" ? (
@@ -616,7 +657,7 @@ CRIT RATE 49.47%`}
                 )}
               </Card>
             </div>
-          ) : (
+          ) : activeOutputTab === "snapshot" ? (
             <div
               id="character-snapshot-panel"
               role="tabpanel"
@@ -683,6 +724,76 @@ CRIT RATE 49.47%`}
 
                   <pre className="max-h-[620px] overflow-auto rounded-2xl bg-zinc-950 p-5 font-mono text-sm leading-6 text-zinc-100">
                     {characterSnapshotJson}
+                  </pre>
+                </CardContent>
+              </Card>
+            </div>
+          ) : (
+            <div id="cards-output-panel" role="tabpanel">
+              <Card className="overflow-hidden">
+                <CardHeader className="flex items-center justify-between gap-4">
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-[0.18em] text-violet-600">
+                      Cards OCR output
+                    </p>
+                    <h2 className="mt-2 text-xl font-black">
+                      Equipped cards
+                    </h2>
+                  </div>
+
+                  <Button onClick={handleCopyCards}>
+                    Copy JSON
+                  </Button>
+                </CardHeader>
+
+                <CardContent className="space-y-5">
+                  {cards.length === 0 ? (
+                    <EmptyState
+                      title="No cards recognized"
+                      description="Run OCR or enter card slots in the format “Slot 1: Card Name Lv. 5 Epic”."
+                    />
+                  ) : (
+                    <div className="divide-y divide-zinc-200 rounded-2xl border border-zinc-200">
+                      {cards.map((card) => (
+                        <article
+                          key={card.slot}
+                          className="flex items-center justify-between gap-4 p-4"
+                        >
+                          <div>
+                            <p className="font-semibold">
+                              Slot {card.slot} · {card.name}
+                            </p>
+                            <p className="mt-1 text-sm text-zinc-500">
+                              {card.level
+                                ? `Lv. ${card.level}`
+                                : "Level unknown"}
+                              {card.rarity
+                                ? ` · ${card.rarity}`
+                                : ""}
+                            </p>
+                          </div>
+                          <strong className="font-mono text-sm">
+                            {(card.confidence * 100).toFixed(1)}%
+                          </strong>
+                        </article>
+                      ))}
+                    </div>
+                  )}
+
+                  {copyStatus && (
+                    <Badge
+                      variant={
+                        copyStatus === "Cards JSON copied."
+                          ? "success"
+                          : "danger"
+                      }
+                    >
+                      {copyStatus}
+                    </Badge>
+                  )}
+
+                  <pre className="max-h-[620px] overflow-auto rounded-2xl bg-zinc-950 p-5 font-mono text-sm leading-6 text-zinc-100">
+                    {cardsJson}
                   </pre>
                 </CardContent>
               </Card>

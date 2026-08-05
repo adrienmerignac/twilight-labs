@@ -28,6 +28,7 @@ describe("createResearchSession", () => {
       createdAt: "2026-08-05T06:00:00.000Z",
       evidences,
       snapshots,
+      cards: [],
       timeline,
     });
 
@@ -37,6 +38,7 @@ describe("createResearchSession", () => {
       createdAt: "2026-08-05T06:00:00.000Z",
       evidences,
       snapshots,
+      cards: [],
       timeline,
     });
     expect(Object.isFrozen(session)).toBe(true);
@@ -52,6 +54,7 @@ describe("createResearchSession", () => {
         createdAt: "2026-08-05T06:00:00.000Z",
         evidences: [],
         snapshots: [snapshot, { ...snapshot }],
+        cards: [],
         timeline: createResearchTimeline({ entries: [] }),
       }),
     ).toThrow("Duplicate snapshot id: snapshot-1.");
@@ -65,6 +68,7 @@ describe("createResearchSession", () => {
         createdAt: "2026-08-05T06:00:00.000Z",
         evidences: [{ id: "evidence-1" }, { id: "evidence-1" }],
         snapshots: [],
+        cards: [],
         timeline: createResearchTimeline({ entries: [] }),
       }),
     ).toThrow("Duplicate evidence id: evidence-1.");
@@ -78,11 +82,13 @@ describe("createResearchSession", () => {
         createdAt: "2026-08-05T06:00:00.000Z",
         evidences: [],
         snapshots: [],
+        cards: [],
         timeline: createResearchTimeline({ entries: [] }),
       }),
     ).toMatchObject({
       evidences: [],
       snapshots: [],
+      cards: [],
       timeline: {
         entries: [],
       },

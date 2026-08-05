@@ -20,6 +20,14 @@ const profiles: Record<string, OcrProfile> = {
     pageSegmentationMode: "auto",
     preprocess: passthroughPreprocess,
   },
+  cards: {
+    id: "cards",
+    label: "Cards",
+    engineId: "http",
+    language: "en",
+    pageSegmentationMode: "auto",
+    preprocess: passthroughPreprocess,
+  },
 };
 
 export function getOcrProfile(

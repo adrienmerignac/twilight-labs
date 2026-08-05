@@ -1,4 +1,5 @@
 import type { CharacterSnapshot } from "./character-snapshot";
+import type { CardSnapshot } from "./card-snapshot";
 import type { ResearchTimeline } from "./research-timeline";
 
 export interface IdentifiedEvidence {
@@ -13,6 +14,7 @@ export interface ResearchSession<
   readonly createdAt: string;
   readonly evidences: readonly Evidence[];
   readonly snapshots: readonly CharacterSnapshot[];
+  readonly cards: readonly CardSnapshot[];
   readonly timeline: ResearchTimeline;
 }
 
@@ -24,6 +26,7 @@ export interface CreateResearchSessionOptions<
   createdAt: string;
   evidences: readonly Evidence[];
   snapshots: readonly CharacterSnapshot[];
+  cards: readonly CardSnapshot[];
   timeline: ResearchTimeline;
 }
 
@@ -55,6 +58,7 @@ export function createResearchSession<
     createdAt: options.createdAt,
     evidences: copyUniqueById(options.evidences, "evidence"),
     snapshots: copyUniqueById(options.snapshots, "snapshot"),
+    cards: Object.freeze([...options.cards]),
     timeline: options.timeline,
   });
 }
