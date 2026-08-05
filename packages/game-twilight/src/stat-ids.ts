@@ -32,7 +32,9 @@ export const TwilightStatId = {
   DamageBonus: "damageBonus",
   DamageReductionRate: "damageReductionRate",
   PlayerDamageBoost: "playerDamageBoost",
-  PlayerDamageReduction: "playerDamageReduction"
+  PlayerDamageReduction: "playerDamageReduction",
+  HpRegen: "hpRegen",
+  SkillDamage: "skillDamage",
 } as const;
 
 export type TwilightStatId =

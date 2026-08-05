@@ -36,7 +36,9 @@ const statLabelMap: Readonly<Record<string, string>> = {
   "BLOCK PENETRATE": TwilightStatId.BlockPenetrate,
   "DMG BONUS": TwilightStatId.DamageBonus,
   "PLAYER DMG BOOST": TwilightStatId.PlayerDamageBoost,
-  "DMG REDUCT": TwilightStatId.PlayerDamageReduction
+  "DMG REDUCT": TwilightStatId.PlayerDamageReduction,
+  "HP REGEN": TwilightStatId.HpRegen,
+  "SKILL DMG": TwilightStatId.SkillDamage
 };
 
 export const resolveTwilightStatId = (label: string): string | undefined =>
