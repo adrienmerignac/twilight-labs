@@ -1,56 +1,37 @@
 # Roadmap
 
-## Alpha 0.1 — Foundations
-- Vision and contribution guidelines
-- Architecture decisions
-- CI and code-quality tooling
-- Research methodology
-- Domain vocabulary
+Twilight Labs evolves from traceable capture toward reproducible video-based
+research and evidence-backed recommendations.
 
-## Alpha 0.2 — Character model
-- Character identity
-- Class and build labels
-- Basic and special attributes
-- Source metadata
-- Manual profile import
-- Schema validation
+## Completed
 
-## Alpha 0.3 — Knowledge model
-- Hypothesis
-- Evidence
-- Observation
-- Experiment
-- Formula
-- Confidence
-- Research status
+- OCR profiles, preprocessing, and browser/local OCR execution
+- Twilight statistic parser and parser diagnostics
+- Immutable `CharacterSnapshot` as canonical OCR output
+- Immutable `ResearchSession` aggregate for video evidence and snapshots
 
-## Alpha 0.4 — Compare
-- Compare two profiles
-- Absolute and relative differences
-- Missing-value handling
-- Source visibility
-- Ysatsu versus 25B report
+## Planned
 
-## Alpha 0.5 — Game data
-- Heroes, pets, cores, cards, Artispirit, Forge, Shadow, skills, and equipment
+### Research workflow
 
-## Alpha 0.6 — Parsing
-- Screenshot ingestion
-- Video frame extraction
-- Region-based parsing
-- OCR-assisted extraction
-- Manual correction workflow
+- ResearchTimeline for ordered video observations
+- Exportable research sessions and evidence packages
+- AI Analysis for assisted review of traceable research data
 
-## Alpha 0.7 — Research engine
-- Experiment protocols
-- Evidence linking
-- Reproducibility metadata
-- Formula candidates
-- Contradictory evidence handling
+### Extraction surfaces
 
-## Alpha 0.8 — Optimizer
-- Stat-change simulation
-- Upgrade comparison
-- PvE and PvP contexts
-- Evidence-backed recommendations
-- Explicit uncertainty
+- Cards OCR
+- Equipment OCR
+- Skills OCR
+- Core OCR
+
+### Decision support
+
+- Recommendation Engine with evidence-backed conclusions
+- Explicit uncertainty and confidence visibility
+
+## Guiding constraints
+
+Planned capabilities will preserve raw evidence, retain provenance, distinguish
+unknown values from zero, and extend ResearchSession rather than creating
+unrelated competing aggregates.
