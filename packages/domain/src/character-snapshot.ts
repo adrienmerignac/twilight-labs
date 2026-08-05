@@ -4,8 +4,6 @@ import type { Stat } from "./stat";
 export interface CharacterSnapshot {
   id: string;
 
-  characterId?: string;
-
   evidenceId: string;
 
   stats: Stat[];

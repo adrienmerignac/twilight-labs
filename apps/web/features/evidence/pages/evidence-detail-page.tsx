@@ -1,6 +1,9 @@
 "use client";
 
-import { analyzeTwilightStats } from "@twilight-labs/game-twilight";
+import {
+  analyzeTwilightStats,
+  createCharacterSnapshot,
+} from "@twilight-labs/game-twilight";
 import { runOcrProfile } from "@twilight-labs/ocr";
 import { Badge } from "@repo/ui/badge";
 import { Button } from "@repo/ui/button";
@@ -54,8 +57,15 @@ export default function EvidenceDetailPage() {
   );
   const [ocrDurationMs, setOcrDurationMs] =
     useState<number | null>(null);
+  const [ocrExtractedAt, setOcrExtractedAt] = useState<
+    string | null
+  >(null);
   const [processedPreviewUrl, setProcessedPreviewUrl] =
     useState<string | null>(null);
+  const [activeOutputTab, setActiveOutputTab] = useState<
+    "parser" | "snapshot"
+  >("parser");
+  const [copyStatus, setCopyStatus] = useState<string | null>(null);
 
   useEffect(() => {
     void getEvidence(params.id).then((storedEvidence) => {
@@ -79,6 +89,36 @@ export default function EvidenceDetailPage() {
   const analysis = useMemo(
     () => analyzeTwilightStats(rawText),
     [rawText],
+  );
+  const characterSnapshot = useMemo(
+    () =>
+      evidence
+        ? createCharacterSnapshot({
+            id: evidence.id,
+            evidenceId: evidence.id,
+            rawText,
+            parsedStats: analysis.recognized,
+            confidence: ocrConfidence ?? 0,
+            extractedAt:
+              ocrExtractedAt ??
+              evidence.transcription?.updatedAt ??
+              evidence.createdAt,
+          })
+        : null,
+    [
+      analysis.recognized,
+      evidence,
+      ocrConfidence,
+      ocrExtractedAt,
+      rawText,
+    ],
+  );
+  const characterSnapshotJson = useMemo(
+    () =>
+      characterSnapshot
+        ? JSON.stringify(characterSnapshot, null, 2)
+        : "",
+    [characterSnapshot],
   );
 
   const handleRunOcr = async () => {
@@ -125,6 +165,7 @@ export default function EvidenceDetailPage() {
       setOcrConfidence(result.confidence);
       setOcrEngine(result.engineId);
       setOcrDurationMs(result.durationMs);
+      setOcrExtractedAt(new Date().toISOString());
       setOcrStatus("OCR completed");
       setOcrProgress(100);
     } catch (caughtError) {
@@ -158,6 +199,27 @@ export default function EvidenceDetailPage() {
       (await getEvidence(evidence.id)) ?? evidence,
     );
     setSaved(true);
+  };
+
+  const handleCopyCharacterSnapshot = () => {
+    if (!characterSnapshotJson) {
+      return;
+    }
+
+    if (!navigator.clipboard) {
+      setCopyStatus(
+        "Clipboard access is unavailable in this browser.",
+      );
+      return;
+    }
+
+    void navigator.clipboard.writeText(characterSnapshotJson).then(
+      () => setCopyStatus("Character Snapshot copied."),
+      () =>
+        setCopyStatus(
+          "Unable to copy Character Snapshot to the clipboard.",
+        ),
+    );
   };
 
   if (!loaded) {
@@ -384,124 +446,236 @@ CRIT RATE 49.47%`}
         </div>
 
         <div className="flex flex-col gap-6">
-          <Card className="overflow-hidden">
-            <CardHeader className="flex items-center justify-between gap-4">
-              <div>
-                <p className="text-xs font-bold uppercase tracking-[0.18em] text-emerald-600">
-                  Parser output
-                </p>
-                <h2 className="mt-2 text-xl font-black">
-                  Recognized statistics
-                </h2>
-              </div>
+          <div
+            role="tablist"
+            aria-label="OCR output views"
+            className="flex gap-2 border-b border-zinc-200"
+          >
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeOutputTab === "parser"}
+              aria-controls="parser-output-panel"
+              onClick={() => setActiveOutputTab("parser")}
+              className={[
+                "border-b-2 px-4 py-3 text-sm font-bold transition",
+                activeOutputTab === "parser"
+                  ? "border-violet-600 text-violet-700"
+                  : "border-transparent text-zinc-500 hover:text-zinc-950",
+              ].join(" ")}
+            >
+              Parser Output
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeOutputTab === "snapshot"}
+              aria-controls="character-snapshot-panel"
+              onClick={() => setActiveOutputTab("snapshot")}
+              className={[
+                "border-b-2 px-4 py-3 text-sm font-bold transition",
+                activeOutputTab === "snapshot"
+                  ? "border-violet-600 text-violet-700"
+                  : "border-transparent text-zinc-500 hover:text-zinc-950",
+              ].join(" ")}
+            >
+              Character Snapshot
+            </button>
+          </div>
 
-              <Badge variant="success">
-                {analysis.recognized.length}
-              </Badge>
-            </CardHeader>
+          {activeOutputTab === "parser" ? (
+            <div id="parser-output-panel" role="tabpanel">
+              <Card className="overflow-hidden">
+                <CardHeader className="flex items-center justify-between gap-4">
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-[0.18em] text-emerald-600">
+                      Parser output
+                    </p>
+                    <h2 className="mt-2 text-xl font-black">
+                      Recognized statistics
+                    </h2>
+                  </div>
 
-            {analysis.recognized.length === 0 ? (
-              <CardContent>
-                <EmptyState
-                  title="No recognized statistics"
-                  description="Run OCR or enter known Twilight statistic labels to inspect the normalized result."
-                />
-              </CardContent>
-            ) : (
-              <div className="divide-y divide-zinc-200">
-                {analysis.recognized.map(
-                  (stat, index) => (
-                    <article
-                      key={`${stat.id}-${index}`}
-                      className="flex items-center justify-between gap-4 p-5"
-                    >
-                      <div>
-                        <p className="font-semibold">
-                          {stat.label}
-                        </p>
-                        <p className="mt-1 font-mono text-xs text-zinc-400">
-                          {stat.id} · {stat.category}
-                        </p>
-                      </div>
+                  <Badge variant="success">
+                    {analysis.recognized.length}
+                  </Badge>
+                </CardHeader>
 
-                      <strong className="font-mono">
-                        {stat.value.toLocaleString(
-                          "en-US",
-                          {
-                            maximumFractionDigits: 2,
-                          },
-                        )}
-                        {stat.unit === "percent"
-                          ? "%"
-                          : ""}
-                      </strong>
-                    </article>
-                  ),
+                {analysis.recognized.length === 0 ? (
+                  <CardContent>
+                    <EmptyState
+                      title="No recognized statistics"
+                      description="Run OCR or enter known Twilight statistic labels to inspect the normalized result."
+                    />
+                  </CardContent>
+                ) : (
+                  <div className="divide-y divide-zinc-200">
+                    {analysis.recognized.map(
+                      (stat, index) => (
+                        <article
+                          key={`${stat.id}-${index}`}
+                          className="flex items-center justify-between gap-4 p-5"
+                        >
+                          <div>
+                            <p className="font-semibold">
+                              {stat.label}
+                            </p>
+                            <p className="mt-1 font-mono text-xs text-zinc-400">
+                              {stat.id} · {stat.category}
+                            </p>
+                          </div>
+
+                          <strong className="font-mono">
+                            {stat.value.toLocaleString(
+                              "en-US",
+                              {
+                                maximumFractionDigits: 2,
+                              },
+                            )}
+                            {stat.unit === "percent"
+                              ? "%"
+                              : ""}
+                          </strong>
+                        </article>
+                      ),
+                    )}
+                  </div>
                 )}
-              </div>
-            )}
-          </Card>
+              </Card>
 
-          <Card className="overflow-hidden">
-            <CardHeader className="flex items-center justify-between gap-4">
-              <div>
-                <p className="text-xs font-bold uppercase tracking-[0.18em] text-amber-600">
-                  Mapping backlog
-                </p>
-                <h2 className="mt-2 text-xl font-black">
-                  Unrecognized lines
-                </h2>
-              </div>
+              <Card className="mt-6 overflow-hidden">
+                <CardHeader className="flex items-center justify-between gap-4">
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-[0.18em] text-amber-600">
+                      Mapping backlog
+                    </p>
+                    <h2 className="mt-2 text-xl font-black">
+                      Unrecognized lines
+                    </h2>
+                  </div>
 
-              <Badge
-                variant={
-                  analysis.unrecognized.length === 0
-                    ? "success"
-                    : "warning"
-                }
-              >
-                {analysis.unrecognized.length}
-              </Badge>
-            </CardHeader>
+                  <Badge
+                    variant={
+                      analysis.unrecognized.length === 0
+                        ? "success"
+                        : "warning"
+                    }
+                  >
+                    {analysis.unrecognized.length}
+                  </Badge>
+                </CardHeader>
 
-            {analysis.unrecognized.length === 0 ? (
-              <CardContent>
-                <p className="leading-7 text-zinc-500">
-                  Every non-empty line was recognized.
-                </p>
-              </CardContent>
-            ) : (
-              <div className="divide-y divide-zinc-200">
-                {analysis.unrecognized.map(
-                  (entry, index) => (
-                    <article
-                      key={`${entry.line}-${index}`}
-                      className="p-5"
-                    >
-                      <div className="flex flex-wrap items-center justify-between gap-3">
-                        <code className="break-all text-sm font-semibold">
-                          {entry.line}
-                        </code>
+                {analysis.unrecognized.length === 0 ? (
+                  <CardContent>
+                    <p className="leading-7 text-zinc-500">
+                      Every non-empty line was recognized.
+                    </p>
+                  </CardContent>
+                ) : (
+                  <div className="divide-y divide-zinc-200">
+                    {analysis.unrecognized.map(
+                      (entry, index) => (
+                        <article
+                          key={`${entry.line}-${index}`}
+                          className="p-5"
+                        >
+                          <div className="flex flex-wrap items-center justify-between gap-3">
+                            <code className="break-all text-sm font-semibold">
+                              {entry.line}
+                            </code>
 
-                        <Badge variant="warning">
-                          {reasonLabels[entry.reason]}
-                        </Badge>
-                      </div>
+                            <Badge variant="warning">
+                              {reasonLabels[entry.reason]}
+                            </Badge>
+                          </div>
 
-                      {entry.label && (
-                        <p className="mt-2 text-sm text-zinc-500">
-                          Candidate label:{" "}
-                          <code className="font-semibold">
-                            {entry.label}
-                          </code>
-                        </p>
-                      )}
-                    </article>
-                  ),
+                          {entry.label && (
+                            <p className="mt-2 text-sm text-zinc-500">
+                              Candidate label:{" "}
+                              <code className="font-semibold">
+                                {entry.label}
+                              </code>
+                            </p>
+                          )}
+                        </article>
+                      ),
+                    )}
+                  </div>
                 )}
-              </div>
-            )}
-          </Card>
+              </Card>
+            </div>
+          ) : (
+            <div
+              id="character-snapshot-panel"
+              role="tabpanel"
+            >
+              <Card className="overflow-hidden">
+                <CardHeader className="flex items-center justify-between gap-4">
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-[0.18em] text-violet-600">
+                      Canonical OCR output
+                    </p>
+                    <h2 className="mt-2 text-xl font-black">
+                      Character Snapshot
+                    </h2>
+                  </div>
+
+                  <Button onClick={handleCopyCharacterSnapshot}>
+                    Copy JSON
+                  </Button>
+                </CardHeader>
+
+                <CardContent className="space-y-5">
+                  <dl className="grid gap-4 sm:grid-cols-3">
+                    <div>
+                      <dt className="text-xs font-bold uppercase tracking-[0.14em] text-zinc-500">
+                        Confidence
+                      </dt>
+                      <dd className="mt-1 font-mono font-semibold">
+                        {(
+                          (characterSnapshot?.metadata.confidence ?? 0) *
+                          100
+                        ).toFixed(1)}
+                        %
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-xs font-bold uppercase tracking-[0.14em] text-zinc-500">
+                        Extracted at
+                      </dt>
+                      <dd className="mt-1 break-all font-mono text-sm">
+                        {characterSnapshot?.extractedAt}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-xs font-bold uppercase tracking-[0.14em] text-zinc-500">
+                        Evidence ID
+                      </dt>
+                      <dd className="mt-1 break-all font-mono text-sm">
+                        {characterSnapshot?.evidenceId}
+                      </dd>
+                    </div>
+                  </dl>
+
+                  {copyStatus && (
+                    <Badge
+                      variant={
+                        copyStatus === "Character Snapshot copied."
+                          ? "success"
+                          : "danger"
+                      }
+                    >
+                      {copyStatus}
+                    </Badge>
+                  )}
+
+                  <pre className="max-h-[620px] overflow-auto rounded-2xl bg-zinc-950 p-5 font-mono text-sm leading-6 text-zinc-100">
+                    {characterSnapshotJson}
+                  </pre>
+                </CardContent>
+              </Card>
+            </div>
+          )}
         </div>
       </section>
     </main>
