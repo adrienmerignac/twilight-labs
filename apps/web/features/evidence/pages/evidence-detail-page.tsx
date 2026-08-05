@@ -8,7 +8,12 @@ import {
 import {
   extractOcrCharacterMetadata,
   normalizeOcrConfidence,
+  OcrRequestCanceledError,
+  OcrRequestManager,
+  OcrRequestTimeoutError,
+  reconstructCardGrid,
   runOcrProfile,
+  type OcrLine,
 } from "@twilight-labs/ocr";
 import { getScreenDefinition } from "@twilight-labs/evidence";
 import { Badge } from "@repo/ui/badge";
@@ -20,7 +25,12 @@ import { PageHeader } from "@repo/ui/page-header";
 import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 import {
   getEvidence,
@@ -43,11 +53,32 @@ const formatOcrStatus = (status: string) =>
     )
     .join(" ");
 
+const getOcrErrorMessage = (error: unknown): string => {
+  if (error instanceof OcrRequestCanceledError) {
+    return "OCR canceled. You can run it again.";
+  }
+
+  if (error instanceof OcrRequestTimeoutError) {
+    return "OCR timed out after 60 seconds. Check the local OCR service and try again.";
+  }
+
+  if (error instanceof TypeError) {
+    return "Unable to reach the local OCR service. Start it and try again.";
+  }
+
+  return error instanceof Error
+    ? error.message
+    : "Unable to run OCR.";
+};
+
 export default function EvidenceDetailPage() {
   const params = useParams<{ id: string }>();
   const [evidence, setEvidence] =
     useState<StoredEvidence | null>(null);
   const [rawText, setRawText] = useState("");
+  const [ocrLines, setOcrLines] = useState<readonly OcrLine[]>(
+    [],
+  );
   const [loaded, setLoaded] = useState(false);
   const [saved, setSaved] = useState(false);
   const [ocrRunning, setOcrRunning] = useState(false);
@@ -72,6 +103,7 @@ export default function EvidenceDetailPage() {
     "parser" | "snapshot" | "cards"
   >("parser");
   const [copyStatus, setCopyStatus] = useState<string | null>(null);
+  const ocrRequestManager = useRef(new OcrRequestManager());
 
   useEffect(() => {
     void getEvidence(params.id).then((storedEvidence) => {
@@ -97,6 +129,13 @@ export default function EvidenceDetailPage() {
       }
     },
     [processedPreviewUrl],
+  );
+
+  useEffect(
+    () => () => {
+      ocrRequestManager.current.cancel();
+    },
+    [],
   );
 
   const analysis = useMemo(
@@ -141,17 +180,25 @@ export default function EvidenceDetailPage() {
         : "",
     [characterSnapshot],
   );
+  const cardReconstruction = useMemo(
+    () => reconstructCardGrid(ocrLines),
+    [ocrLines],
+  );
   const cards = useMemo(
-    () => parseTwilightCards(rawText, normalizedOcrConfidence),
-    [normalizedOcrConfidence, rawText],
+    () => parseTwilightCards(cardReconstruction.cells),
+    [cardReconstruction.cells],
   );
   const cardsJson = useMemo(
     () => JSON.stringify(cards, null, 2),
     [cards],
   );
+  const cardsDiagnosticsJson = useMemo(
+    () => JSON.stringify(cardReconstruction, null, 2),
+    [cardReconstruction],
+  );
 
   const handleRunOcr = async () => {
-    if (!evidence || ocrRunning) {
+    if (!evidence || ocrRequestManager.current.isRunning) {
       return;
     }
 
@@ -170,16 +217,20 @@ export default function EvidenceDetailPage() {
 
       setOcrStatus("Preparing OCR profile");
 
-      const result = await runOcrProfile({
-        image: evidence.previewDataUrl,
-        profileId: screenType,
-        onProgress: ({ status, progress }) => {
-          setOcrStatus(formatOcrStatus(status));
-          setOcrProgress(
-            Math.max(0, Math.min(100, progress * 100)),
-          );
-        },
-      });
+      const result = await ocrRequestManager.current.run(
+        (signal) =>
+          runOcrProfile({
+            image: evidence.previewDataUrl,
+            profileId: screenType,
+            signal,
+            onProgress: ({ status, progress }) => {
+              setOcrStatus(formatOcrStatus(status));
+              setOcrProgress(
+                Math.max(0, Math.min(100, progress * 100)),
+              );
+            },
+          }),
+      );
 
       setProcessedPreviewUrl((current) => {
         if (current) {
@@ -191,6 +242,7 @@ export default function EvidenceDetailPage() {
           : null;
       });
       setRawText(result.text);
+      setOcrLines(result.lines ?? []);
       setOcrConfidence(result.confidence);
       setOcrEngine(result.engineId);
       setOcrDurationMs(result.durationMs);
@@ -198,14 +250,22 @@ export default function EvidenceDetailPage() {
       setOcrStatus("OCR completed");
       setOcrProgress(100);
     } catch (caughtError) {
-      setOcrError(
-        caughtError instanceof Error
-          ? caughtError.message
-          : "Unable to run OCR.",
+      const message = getOcrErrorMessage(caughtError);
+      setOcrError(message);
+      setOcrStatus(
+        caughtError instanceof OcrRequestCanceledError
+          ? "OCR canceled"
+          : "OCR failed",
       );
-      setOcrStatus("OCR failed");
     } finally {
       setOcrRunning(false);
+    }
+  };
+
+  const handleCancelOcr = () => {
+    if (ocrRequestManager.current.isRunning) {
+      setOcrStatus("Canceling OCR");
+      ocrRequestManager.current.cancel();
     }
   };
 
@@ -401,15 +461,26 @@ export default function EvidenceDetailPage() {
             </CardHeader>
 
             <CardContent className="space-y-4">
-              <Button
-                className="w-full"
-                onClick={handleRunOcr}
-                disabled={ocrRunning}
-              >
-                {ocrRunning
-                  ? `Running OCR… ${ocrProgress.toFixed(0)}%`
-                  : "Run OCR"}
-              </Button>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Button
+                  className="w-full"
+                  onClick={handleRunOcr}
+                  disabled={ocrRunning}
+                >
+                  {ocrRunning
+                    ? `Running OCR… ${ocrProgress.toFixed(0)}%`
+                    : "Run OCR"}
+                </Button>
+                {ocrRunning && (
+                  <Button
+                    className="w-full"
+                    variant="danger"
+                    onClick={handleCancelOcr}
+                  >
+                    Cancel OCR
+                  </Button>
+                )}
+              </div>
 
               {(ocrRunning || ocrProgress > 0) && (
                 <div>
@@ -750,7 +821,7 @@ CRIT RATE 49.47%`}
                   {cards.length === 0 ? (
                     <EmptyState
                       title="No cards recognized"
-                      description="Run OCR or enter card slots in the format “Slot 1: Card Name Lv. 5 Epic”."
+                      description="Run OCR on a Cards screen to reconstruct card slots from the detected text layout."
                     />
                   ) : (
                     <div className="divide-y divide-zinc-200 rounded-2xl border border-zinc-200">
@@ -794,6 +865,28 @@ CRIT RATE 49.47%`}
 
                   <pre className="max-h-[620px] overflow-auto rounded-2xl bg-zinc-950 p-5 font-mono text-sm leading-6 text-zinc-100">
                     {cardsJson}
+                  </pre>
+                </CardContent>
+              </Card>
+
+              <Card className="mt-6 overflow-hidden">
+                <CardHeader>
+                  <p className="text-xs font-bold uppercase tracking-[0.18em] text-amber-600">
+                    Cards diagnostics
+                  </p>
+                  <h2 className="mt-2 text-xl font-black">
+                    Grid cell and OCR box assignments
+                  </h2>
+                </CardHeader>
+
+                <CardContent>
+                  <p className="mb-4 text-sm leading-6 text-zinc-500">
+                    Each OCR box includes its reconstructed slot. Each
+                    cell includes its inferred bounds and contributing
+                    OCR lines.
+                  </p>
+                  <pre className="max-h-[620px] overflow-auto rounded-2xl bg-zinc-950 p-5 font-mono text-sm leading-6 text-zinc-100">
+                    {cardsDiagnosticsJson}
                   </pre>
                 </CardContent>
               </Card>

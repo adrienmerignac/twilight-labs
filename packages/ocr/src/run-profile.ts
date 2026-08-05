@@ -6,13 +6,21 @@ import type {
   RunOcrProfileResult,
 } from "./types";
 
+const throwIfAborted = (signal?: AbortSignal): void => {
+  if (signal?.aborted) {
+    throw signal.reason ?? new Error("OCR was canceled.");
+  }
+};
+
 export async function runOcrProfile(
   request: RunOcrProfileRequest,
 ): Promise<RunOcrProfileResult> {
   const profile = getOcrProfile(request.profileId);
+  throwIfAborted(request.signal);
   const preprocessed = await profile.preprocess(
     request.image,
   );
+  throwIfAborted(request.signal);
   const engine = getOcrEngine(profile.engineId);
   const result = await engine.recognize({
     image: preprocessed.image,
@@ -20,6 +28,7 @@ export async function runOcrProfile(
     pageSegmentationMode:
       profile.pageSegmentationMode,
     profileId: profile.id,
+    signal: request.signal,
     onProgress: request.onProgress,
   });
 

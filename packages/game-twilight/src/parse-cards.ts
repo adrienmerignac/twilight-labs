@@ -3,8 +3,14 @@ import {
   type CardSnapshot,
 } from "@twilight-labs/domain";
 
-const CARD_LINE_PATTERN =
-  /^(?:slot\s*)?(\d+)\s*[:.)-]\s*(.+)$/i;
+export interface TwilightCardOcrCell {
+  readonly slot: number;
+  readonly confidence: number;
+  readonly lines: readonly {
+    readonly text: string;
+  }[];
+}
+
 const LEVEL_PATTERN = /(?:lv\.?|level)\s*(\d+)/i;
 const RARITIES = [
   "common",
@@ -34,45 +40,29 @@ const findRarity = (value: string) =>
   );
 
 export function parseTwilightCards(
-  input: string,
-  confidence: number,
+  cells: readonly TwilightCardOcrCell[],
 ): CardSnapshot[] {
-  const slots = new Set<number>();
+  return cells.flatMap((cell) => {
+    const details = cell.lines
+      .map((line) => line.text.trim())
+      .filter(Boolean)
+      .join(" ");
 
-  return input
-    .split(/\r?\n/)
-    .map((line) => line.trim())
-    .flatMap((line) => {
-      const match = line.match(CARD_LINE_PATTERN);
-      const slot = Number(match?.[1]);
-      const details = match?.[2]?.trim();
+    if (!details || EMPTY_SLOT_PATTERN.test(details)) {
+      return [];
+    }
 
-      if (
-        !match ||
-        !details ||
-        EMPTY_SLOT_PATTERN.test(details) ||
-        slots.has(slot)
-      ) {
-        return [];
-      }
+    const level = details.match(LEVEL_PATTERN)?.[1];
+    const name = normalizeName(details) || "Unknown card";
 
-      const name = normalizeName(details);
-      if (!name) {
-        return [];
-      }
-
-      slots.add(slot);
-
-      const level = details.match(LEVEL_PATTERN)?.[1];
-
-      return [
-        createCardSnapshot({
-          slot,
-          name,
-          level: level ? Number(level) : undefined,
-          rarity: findRarity(details),
-          confidence,
-        }),
-      ];
-    });
+    return [
+      createCardSnapshot({
+        slot: cell.slot,
+        name,
+        level: level ? Number(level) : undefined,
+        rarity: findRarity(details),
+        confidence: cell.confidence,
+      }),
+    ];
+  });
 }

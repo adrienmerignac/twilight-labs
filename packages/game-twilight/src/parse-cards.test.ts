@@ -3,14 +3,25 @@ import { describe, expect, it } from "vitest";
 import { parseTwilightCards } from "./parse-cards";
 
 describe("parseTwilightCards", () => {
-  it("extracts card details from OCR output", () => {
+  it("extracts card details from reconstructed OCR cells", () => {
     expect(
       parseTwilightCards(
-        `
-          Slot 1: Flame Card Lv. 5 Epic
-          Slot 2: Guardian Card
-        `,
-        0.92,
+        [
+          {
+            slot: 1,
+            confidence: 0.92,
+            lines: [
+              { text: "Flame Card" },
+              { text: "Lv. 5" },
+              { text: "Epic" },
+            ],
+          },
+          {
+            slot: 2,
+            confidence: 0.88,
+            lines: [{ text: "Guardian Card" }],
+          },
+        ],
       ),
     ).toEqual([
       {
@@ -25,31 +36,26 @@ describe("parseTwilightCards", () => {
         name: "Guardian Card",
         level: undefined,
         rarity: undefined,
-        confidence: 0.92,
+        confidence: 0.88,
       },
     ]);
-  });
-
-  it("deduplicates repeated OCR lines by slot", () => {
-    expect(
-      parseTwilightCards(
-        `
-          Slot 1: Flame Card Lv. 5 Epic
-          Slot 1: Flame Card Lv. 5 Epic
-        `,
-        0.92,
-      ),
-    ).toHaveLength(1);
   });
 
   it("omits empty slots", () => {
     expect(
       parseTwilightCards(
-        `
-          Slot 1: Empty
-          Slot 2: Guardian Card
-        `,
-        0.92,
+        [
+          {
+            slot: 1,
+            confidence: 0.92,
+            lines: [{ text: "Empty" }],
+          },
+          {
+            slot: 2,
+            confidence: 0.92,
+            lines: [{ text: "Guardian Card" }],
+          },
+        ],
       ),
     ).toEqual([
       {
@@ -62,24 +68,36 @@ describe("parseTwilightCards", () => {
     ]);
   });
 
-  it("ignores invalid OCR lines", () => {
+  it("keeps a partial card when only its level is recognized", () => {
     expect(
       parseTwilightCards(
-        `
-          Card collection
-          Slot: Flame Card
-          ??
-        `,
-        0.92,
+        [
+          {
+            slot: 3,
+            confidence: 0.47,
+            lines: [{ text: "Lv. 8" }],
+          },
+        ],
       ),
-    ).toEqual([]);
+    ).toEqual([
+      {
+        slot: 3,
+        name: "Unknown card",
+        level: 8,
+        rarity: undefined,
+        confidence: 0.47,
+      },
+    ]);
   });
 
   it("returns immutable card snapshots", () => {
-    const [card] = parseTwilightCards(
-      "Slot 1: Flame Card",
-      0.92,
-    );
+    const [card] = parseTwilightCards([
+      {
+        slot: 1,
+        confidence: 0.92,
+        lines: [{ text: "Flame Card" }],
+      },
+    ]);
 
     expect(card).toBeDefined();
     expect(Object.isFrozen(card)).toBe(true);
