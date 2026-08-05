@@ -1,3 +1,4 @@
+export * from "./character-metadata";
 export * from "./engines/registry";
 export * from "./layout/character-attributes";
 export * from "./profiles/registry";

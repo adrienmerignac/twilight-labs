@@ -4,7 +4,11 @@ import {
   analyzeTwilightStats,
   createCharacterSnapshot,
 } from "@twilight-labs/game-twilight";
-import { runOcrProfile } from "@twilight-labs/ocr";
+import {
+  extractOcrCharacterMetadata,
+  normalizeOcrConfidence,
+  runOcrProfile,
+} from "@twilight-labs/ocr";
 import { Badge } from "@repo/ui/badge";
 import { Button } from "@repo/ui/button";
 import { Card, CardContent, CardHeader } from "@repo/ui/card";
@@ -90,15 +94,23 @@ export default function EvidenceDetailPage() {
     () => analyzeTwilightStats(rawText),
     [rawText],
   );
+  const ocrMetadata = useMemo(
+    () => extractOcrCharacterMetadata(rawText),
+    [rawText],
+  );
+  const normalizedOcrConfidence = useMemo(
+    () => normalizeOcrConfidence(ocrConfidence ?? 0),
+    [ocrConfidence],
+  );
   const characterSnapshot = useMemo(
     () =>
       evidence
         ? createCharacterSnapshot({
             id: evidence.id,
             evidenceId: evidence.id,
-            rawText,
             parsedStats: analysis.recognized,
-            confidence: ocrConfidence ?? 0,
+            confidence: normalizedOcrConfidence,
+            metadata: ocrMetadata,
             extractedAt:
               ocrExtractedAt ??
               evidence.transcription?.updatedAt ??
@@ -108,9 +120,9 @@ export default function EvidenceDetailPage() {
     [
       analysis.recognized,
       evidence,
-      ocrConfidence,
       ocrExtractedAt,
-      rawText,
+      ocrMetadata,
+      normalizedOcrConfidence,
     ],
   );
   const characterSnapshotJson = useMemo(

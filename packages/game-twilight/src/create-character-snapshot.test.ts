@@ -11,14 +11,12 @@ describe("createCharacterSnapshot", () => {
       id: "snapshot-1",
       evidenceId: "evidence-1",
       extractedAt: "2026-08-05T06:00:00.000Z",
-      confidence: 92.5,
-      rawText: `
-        Class: Assassin
-        Level 65
-        EXP Lv. 12
-        HP 167M
-        ATK 13.36M
-      `,
+      confidence: 0.925,
+      metadata: {
+        class: "Assassin",
+        level: 65,
+        expLevel: 12,
+      },
       parsedStats: parseTwilightStats(`
         HP 167M
         ATK 13.36M
@@ -66,7 +64,7 @@ describe("createCharacterSnapshot", () => {
       evidenceId: "evidence-2",
       extractedAt: "2026-08-05T06:00:00.000Z",
       confidence: 0,
-      rawText: "HP 167M",
+      metadata: {},
       parsedStats: parseTwilightStats("HP 167M"),
     });
 
@@ -84,7 +82,7 @@ describe("createCharacterSnapshot", () => {
         evidenceId: "evidence-3",
         extractedAt: "2026-08-05T06:00:00.000Z",
         confidence: 0,
-        rawText: "HP 167M",
+        metadata: {},
         parsedStats: [
           ...parseTwilightStats("HP 167M"),
           ...parseTwilightStats("HP 167M"),
