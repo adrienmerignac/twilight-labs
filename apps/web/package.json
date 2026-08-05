@@ -21,7 +21,8 @@
     "@twilight-labs/analysis": "workspace:*",
     "@twilight-labs/evidence": "workspace:*",
     "@twilight-labs/video": "workspace:*",
-    "@twilight-labs/ocr": "workspace:*"
+    "@twilight-labs/ocr": "workspace:*",
+    "@twilight-labs/vision": "workspace:*"
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",

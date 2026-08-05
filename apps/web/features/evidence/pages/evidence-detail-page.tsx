@@ -2,8 +2,10 @@
 
 import {
   analyzeTwilightStats,
+  createTwilightCardOcrCells,
   createCharacterSnapshot,
   parseTwilightCards,
+  twilightCardsCells,
 } from "@twilight-labs/game-twilight";
 import {
   extractOcrCharacterMetadata,
@@ -11,11 +13,12 @@ import {
   OcrRequestCanceledError,
   OcrRequestManager,
   OcrRequestTimeoutError,
-  reconstructCardGrid,
+  reconstructOcrRegions,
   runOcrProfile,
   type OcrLine,
 } from "@twilight-labs/ocr";
 import { getScreenDefinition } from "@twilight-labs/evidence";
+import type { ImageDimensions } from "@twilight-labs/vision";
 import { Badge } from "@repo/ui/badge";
 import { Button } from "@repo/ui/button";
 import { Card, CardContent, CardHeader } from "@repo/ui/card";
@@ -79,6 +82,8 @@ export default function EvidenceDetailPage() {
   const [ocrLines, setOcrLines] = useState<readonly OcrLine[]>(
     [],
   );
+  const [ocrImageDimensions, setOcrImageDimensions] =
+    useState<ImageDimensions | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [saved, setSaved] = useState(false);
   const [ocrRunning, setOcrRunning] = useState(false);
@@ -138,6 +143,35 @@ export default function EvidenceDetailPage() {
     [],
   );
 
+  useEffect(() => {
+    if (!evidence) {
+      setOcrImageDimensions(null);
+      return;
+    }
+
+    let disposed = false;
+    const image = new window.Image();
+
+    image.onload = () => {
+      if (!disposed) {
+        setOcrImageDimensions({
+          width: image.naturalWidth,
+          height: image.naturalHeight,
+        });
+      }
+    };
+    image.onerror = () => {
+      if (!disposed) {
+        setOcrImageDimensions(null);
+      }
+    };
+    image.src = evidence.previewDataUrl;
+
+    return () => {
+      disposed = true;
+    };
+  }, [evidence]);
+
   const analysis = useMemo(
     () => analyzeTwilightStats(rawText),
     [rawText],
@@ -181,19 +215,41 @@ export default function EvidenceDetailPage() {
     [characterSnapshot],
   );
   const cardReconstruction = useMemo(
-    () => reconstructCardGrid(ocrLines),
-    [ocrLines],
+    () =>
+      ocrImageDimensions
+        ? reconstructOcrRegions(
+            ocrLines,
+            twilightCardsCells,
+            ocrImageDimensions,
+          )
+        : null,
+    [ocrImageDimensions, ocrLines],
   );
   const cards = useMemo(
-    () => parseTwilightCards(cardReconstruction.cells),
-    [cardReconstruction.cells],
+    () =>
+      cardReconstruction
+        ? parseTwilightCards(
+            createTwilightCardOcrCells(
+              cardReconstruction.cells,
+            ),
+          )
+        : [],
+    [cardReconstruction],
   );
   const cardsJson = useMemo(
     () => JSON.stringify(cards, null, 2),
     [cards],
   );
   const cardsDiagnosticsJson = useMemo(
-    () => JSON.stringify(cardReconstruction, null, 2),
+    () =>
+      JSON.stringify(
+        cardReconstruction ?? {
+          cells: [],
+          assignments: [],
+        },
+        null,
+        2,
+      ),
     [cardReconstruction],
   );
 
@@ -881,9 +937,9 @@ CRIT RATE 49.47%`}
 
                 <CardContent>
                   <p className="mb-4 text-sm leading-6 text-zinc-500">
-                    Each OCR box includes its reconstructed slot. Each
-                    cell includes its inferred bounds and contributing
-                    OCR lines.
+                    The eight fixed card cells include pixel bounds and
+                    contributing OCR lines. Only OCR inside those cells
+                    appears in the assignments.
                   </p>
                   <pre className="max-h-[620px] overflow-auto rounded-2xl bg-zinc-950 p-5 font-mono text-sm leading-6 text-zinc-100">
                     {cardsDiagnosticsJson}

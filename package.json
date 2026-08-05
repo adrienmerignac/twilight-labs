@@ -7,7 +7,7 @@
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "check-types": "turbo run check-types",
-    "test": "pnpm --filter @twilight-labs/analysis --filter @twilight-labs/game-twilight --filter @twilight-labs/ocr --filter @twilight-labs/parser --filter @twilight-labs/video test",
+    "test": "pnpm --filter @twilight-labs/analysis --filter @twilight-labs/game-twilight --filter @twilight-labs/ocr --filter @twilight-labs/parser --filter @twilight-labs/video --filter @twilight-labs/vision test",
     "dev:all": "bash scripts/dev-all.sh"
   },
   "devDependencies": {

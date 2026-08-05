@@ -32,6 +32,7 @@ Screenshot or video frame
 | `@twilight-labs/domain`        | Stable, game-agnostic models, value contracts, and aggregate factories.                       |
 | `@twilight-labs/parser`        | Generic numeric parsing utilities.                                                            |
 | `@twilight-labs/game-twilight` | Twilight label resolution, stat parsing, and mapping into domain models.                      |
+| `@twilight-labs/vision`        | Game-agnostic normalized geometry, grids, pixel projections, and region assignment.           |
 | `@twilight-labs/ocr`           | OCR engines, profiles, OCR reconstruction, metadata extraction, and confidence normalization. |
 | `@twilight-labs/evidence`      | Traceable evidence contracts and screen definitions.                                          |
 | `@twilight-labs/video`         | Video frame extraction and timeline primitives.                                               |
@@ -54,9 +55,11 @@ apps/web
 
 @twilight-labs/game-twilight
   |-- @twilight-labs/parser
-  `-- @twilight-labs/domain
+  |-- @twilight-labs/domain
+  `-- @twilight-labs/vision
 
 @twilight-labs/ocr
+  |-- @twilight-labs/vision
   `-- OCR engine implementations
 ```
 
@@ -88,6 +91,10 @@ models rather than altering the original OCR output.
 OCR profiles select an engine and preprocessing strategy. OCR output may be
 reconstructed for character attributes, then transformed into structured OCR
 metadata such as class, level, EXP level, and normalized confidence.
+
+Vision layouts remain independent of OCR engines and game rules. Twilight
+packages define named layouts, while the Vision package evaluates normalized
+regions and the OCR package adapts OCR polygons to those regions.
 
 ```text
 OCR engine result

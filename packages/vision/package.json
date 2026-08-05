@@ -1,5 +1,5 @@
 {
-  "name": "@twilight-labs/game-twilight",
+  "name": "@twilight-labs/vision",
   "version": "0.0.1",
   "private": true,
   "type": "module",
@@ -11,13 +11,8 @@
     "test": "vitest run"
   },
   "devDependencies": {
-    "typescript": "^5.9.2",
     "@repo/typescript-config": "workspace:*",
+    "typescript": "^5.9.2",
     "vitest": "^3.2.4"
-  },
-  "dependencies": {
-    "@twilight-labs/domain": "workspace:*",
-    "@twilight-labs/parser": "workspace:*",
-    "@twilight-labs/vision": "workspace:*"
   }
 }

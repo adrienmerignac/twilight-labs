@@ -12,6 +12,8 @@ apps
 
 - `@twilight-labs/domain` owns stable, game-agnostic models and aggregates.
 - `@twilight-labs/parser` owns generic parsing utilities.
+- `@twilight-labs/vision` owns game-agnostic normalized geometry, grids, and
+  region assignment.
 - `@twilight-labs/game-twilight` maps Twilight-specific data into domain models.
 - `@twilight-labs/ocr` owns OCR orchestration and OCR text transformations.
 - `@twilight-labs/evidence` owns evidence contracts.
