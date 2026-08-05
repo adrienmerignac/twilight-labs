@@ -8,6 +8,9 @@ import {
 import {
   extractOcrCharacterMetadata,
   normalizeOcrConfidence,
+  OcrRequestCanceledError,
+  OcrRequestManager,
+  OcrRequestTimeoutError,
   runOcrProfile,
 } from "@twilight-labs/ocr";
 import { getScreenDefinition } from "@twilight-labs/evidence";
@@ -20,7 +23,12 @@ import { PageHeader } from "@repo/ui/page-header";
 import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 import {
   getEvidence,
@@ -42,6 +50,24 @@ const formatOcrStatus = (status: string) =>
         part.charAt(0).toUpperCase() + part.slice(1),
     )
     .join(" ");
+
+const getOcrErrorMessage = (error: unknown): string => {
+  if (error instanceof OcrRequestCanceledError) {
+    return "OCR canceled. You can run it again.";
+  }
+
+  if (error instanceof OcrRequestTimeoutError) {
+    return "OCR timed out after 60 seconds. Check the local OCR service and try again.";
+  }
+
+  if (error instanceof TypeError) {
+    return "Unable to reach the local OCR service. Start it and try again.";
+  }
+
+  return error instanceof Error
+    ? error.message
+    : "Unable to run OCR.";
+};
 
 export default function EvidenceDetailPage() {
   const params = useParams<{ id: string }>();
@@ -72,6 +98,7 @@ export default function EvidenceDetailPage() {
     "parser" | "snapshot" | "cards"
   >("parser");
   const [copyStatus, setCopyStatus] = useState<string | null>(null);
+  const ocrRequestManager = useRef(new OcrRequestManager());
 
   useEffect(() => {
     void getEvidence(params.id).then((storedEvidence) => {
@@ -97,6 +124,13 @@ export default function EvidenceDetailPage() {
       }
     },
     [processedPreviewUrl],
+  );
+
+  useEffect(
+    () => () => {
+      ocrRequestManager.current.cancel();
+    },
+    [],
   );
 
   const analysis = useMemo(
@@ -151,7 +185,7 @@ export default function EvidenceDetailPage() {
   );
 
   const handleRunOcr = async () => {
-    if (!evidence || ocrRunning) {
+    if (!evidence || ocrRequestManager.current.isRunning) {
       return;
     }
 
@@ -170,16 +204,20 @@ export default function EvidenceDetailPage() {
 
       setOcrStatus("Preparing OCR profile");
 
-      const result = await runOcrProfile({
-        image: evidence.previewDataUrl,
-        profileId: screenType,
-        onProgress: ({ status, progress }) => {
-          setOcrStatus(formatOcrStatus(status));
-          setOcrProgress(
-            Math.max(0, Math.min(100, progress * 100)),
-          );
-        },
-      });
+      const result = await ocrRequestManager.current.run(
+        (signal) =>
+          runOcrProfile({
+            image: evidence.previewDataUrl,
+            profileId: screenType,
+            signal,
+            onProgress: ({ status, progress }) => {
+              setOcrStatus(formatOcrStatus(status));
+              setOcrProgress(
+                Math.max(0, Math.min(100, progress * 100)),
+              );
+            },
+          }),
+      );
 
       setProcessedPreviewUrl((current) => {
         if (current) {
@@ -198,14 +236,22 @@ export default function EvidenceDetailPage() {
       setOcrStatus("OCR completed");
       setOcrProgress(100);
     } catch (caughtError) {
-      setOcrError(
-        caughtError instanceof Error
-          ? caughtError.message
-          : "Unable to run OCR.",
+      const message = getOcrErrorMessage(caughtError);
+      setOcrError(message);
+      setOcrStatus(
+        caughtError instanceof OcrRequestCanceledError
+          ? "OCR canceled"
+          : "OCR failed",
       );
-      setOcrStatus("OCR failed");
     } finally {
       setOcrRunning(false);
+    }
+  };
+
+  const handleCancelOcr = () => {
+    if (ocrRequestManager.current.isRunning) {
+      setOcrStatus("Canceling OCR");
+      ocrRequestManager.current.cancel();
     }
   };
 
@@ -401,15 +447,26 @@ export default function EvidenceDetailPage() {
             </CardHeader>
 
             <CardContent className="space-y-4">
-              <Button
-                className="w-full"
-                onClick={handleRunOcr}
-                disabled={ocrRunning}
-              >
-                {ocrRunning
-                  ? `Running OCR… ${ocrProgress.toFixed(0)}%`
-                  : "Run OCR"}
-              </Button>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Button
+                  className="w-full"
+                  onClick={handleRunOcr}
+                  disabled={ocrRunning}
+                >
+                  {ocrRunning
+                    ? `Running OCR… ${ocrProgress.toFixed(0)}%`
+                    : "Run OCR"}
+                </Button>
+                {ocrRunning && (
+                  <Button
+                    className="w-full"
+                    variant="danger"
+                    onClick={handleCancelOcr}
+                  >
+                    Cancel OCR
+                  </Button>
+                )}
+              </div>
 
               {(ocrRunning || ocrProgress > 0) && (
                 <div>

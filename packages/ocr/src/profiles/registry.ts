@@ -4,8 +4,8 @@ import type { OcrProfile } from "../types";
 const defaultProfile: OcrProfile = {
   id: "default",
   label: "Default",
-  engineId: "tesseract",
-  language: "eng",
+  engineId: "http",
+  language: "en",
   pageSegmentationMode: "auto",
   preprocess: passthroughPreprocess,
 };

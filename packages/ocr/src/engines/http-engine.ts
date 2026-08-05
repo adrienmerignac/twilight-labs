@@ -7,8 +7,9 @@ const OCR_API_URL = "http://127.0.0.1:8001";
 
 const dataUrlToBlob = async (
   dataUrl: string,
+  signal?: AbortSignal,
 ): Promise<Blob> => {
-  const response = await fetch(dataUrl);
+  const response = await fetch(dataUrl, { signal });
 
   if (!response.ok) {
     throw new Error("Unable to decode the evidence image.");
@@ -19,9 +20,10 @@ const dataUrlToBlob = async (
 
 const toBlob = async (
   image: string | Blob,
+  signal?: AbortSignal,
 ): Promise<Blob> =>
   typeof image === "string"
-    ? dataUrlToBlob(image)
+    ? dataUrlToBlob(image, signal)
     : image;
 
 interface HttpOcrResponse {
@@ -41,7 +43,10 @@ export const httpOcrEngine: OcrEngine = {
       progress: 0.1,
     });
 
-    const imageBlob = await toBlob(request.image);
+    const imageBlob = await toBlob(
+      request.image,
+      request.signal,
+    );
     const formData = new FormData();
 
     formData.append(
@@ -57,6 +62,7 @@ export const httpOcrEngine: OcrEngine = {
     const response = await fetch(`${OCR_API_URL}/ocr`, {
       method: "POST",
       body: formData,
+      signal: request.signal,
     });
 
     if (!response.ok) {

@@ -37,6 +37,7 @@ export interface OcrEngineRequest {
   language?: string;
   pageSegmentationMode?: OcrPageSegmentationMode;
   profileId?: string;
+  signal?: AbortSignal;
   onProgress?: (progress: OcrProgress) => void;
 }
 
@@ -64,6 +65,7 @@ export interface OcrProfile {
 export interface RunOcrProfileRequest {
   image: string | Blob;
   profileId: string;
+  signal?: AbortSignal;
   onProgress?: (progress: OcrProgress) => void;
 }
 
