@@ -5,3 +5,4 @@ export * from "./stat";
 
 export * from "./character-snapshot";
 export * from "./research-session";
+export * from "./research-timeline";

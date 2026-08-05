@@ -1,5 +1,6 @@
 import {
   createResearchSession,
+  createResearchTimeline,
   type CharacterSnapshot,
 } from "@twilight-labs/domain";
 import { describe, expect, it } from "vitest";
@@ -19,6 +20,7 @@ describe("createResearchSession", () => {
   it("creates an immutable session with evidences and snapshots", () => {
     const evidences = [{ id: "evidence-1", filename: "video.png" }];
     const snapshots = [snapshot];
+    const timeline = createResearchTimeline({ entries: [] });
 
     const session = createResearchSession({
       id: "session-1",
@@ -26,6 +28,7 @@ describe("createResearchSession", () => {
       createdAt: "2026-08-05T06:00:00.000Z",
       evidences,
       snapshots,
+      timeline,
     });
 
     expect(session).toEqual({
@@ -34,6 +37,7 @@ describe("createResearchSession", () => {
       createdAt: "2026-08-05T06:00:00.000Z",
       evidences,
       snapshots,
+      timeline,
     });
     expect(Object.isFrozen(session)).toBe(true);
     expect(Object.isFrozen(session.evidences)).toBe(true);
@@ -48,6 +52,7 @@ describe("createResearchSession", () => {
         createdAt: "2026-08-05T06:00:00.000Z",
         evidences: [],
         snapshots: [snapshot, { ...snapshot }],
+        timeline: createResearchTimeline({ entries: [] }),
       }),
     ).toThrow("Duplicate snapshot id: snapshot-1.");
   });
@@ -60,6 +65,7 @@ describe("createResearchSession", () => {
         createdAt: "2026-08-05T06:00:00.000Z",
         evidences: [{ id: "evidence-1" }, { id: "evidence-1" }],
         snapshots: [],
+        timeline: createResearchTimeline({ entries: [] }),
       }),
     ).toThrow("Duplicate evidence id: evidence-1.");
   });
@@ -72,10 +78,14 @@ describe("createResearchSession", () => {
         createdAt: "2026-08-05T06:00:00.000Z",
         evidences: [],
         snapshots: [],
+        timeline: createResearchTimeline({ entries: [] }),
       }),
     ).toMatchObject({
       evidences: [],
       snapshots: [],
+      timeline: {
+        entries: [],
+      },
     });
   });
 });

@@ -1,4 +1,5 @@
 import type { CharacterSnapshot } from "./character-snapshot";
+import type { ResearchTimeline } from "./research-timeline";
 
 export interface IdentifiedEvidence {
   id: string;
@@ -12,6 +13,7 @@ export interface ResearchSession<
   readonly createdAt: string;
   readonly evidences: readonly Evidence[];
   readonly snapshots: readonly CharacterSnapshot[];
+  readonly timeline: ResearchTimeline;
 }
 
 export interface CreateResearchSessionOptions<
@@ -22,6 +24,7 @@ export interface CreateResearchSessionOptions<
   createdAt: string;
   evidences: readonly Evidence[];
   snapshots: readonly CharacterSnapshot[];
+  timeline: ResearchTimeline;
 }
 
 function copyUniqueById<Item extends { id: string }>(
@@ -52,5 +55,6 @@ export function createResearchSession<
     createdAt: options.createdAt,
     evidences: copyUniqueById(options.evidences, "evidence"),
     snapshots: copyUniqueById(options.snapshots, "snapshot"),
+    timeline: options.timeline,
   });
 }
